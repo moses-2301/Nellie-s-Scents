@@ -1,0 +1,82 @@
+{% extends "admin/change_form.html" %}
+{% load static %}
+
+{% block extrahead %}
+{{ block.super }}
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<style>
+.undo-notification {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    background: #28a745;
+    color: white;
+    padding: 15px 20px;
+    border-radius: 5px;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    z-index: 10000;
+    display: none;
+    max-width: 300px;
+}
+
+.undo-notification.show {
+    display: block;
+}
+
+.undo-btn {
+    background: #218838;
+    color: white;
+    border: none;
+    padding: 5px 10px;
+    border-radius: 3px;
+    cursor: pointer;
+    margin-left: 10px;
+}
+
+.undo-btn:hover {
+    background: #1e7e34;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+{{ block.super }}
+
+<div id="undo-notification" class="undo-notification">
+    <span>Changes saved — <button id="undo-btn" class="undo-btn">Undo</button></span>
+</div>
+
+<script>
+$(document).ready(function() {
+    // Show undo notification after form submission
+    if (window.location.search.includes('saved=1')) {
+        $('#undo-notification').addClass('show');
+        
+        // Auto-hide after 10 seconds
+        setTimeout(function() {
+            $('#undo-notification').removeClass('show');
+        }, 10000);
+        
+        // Handle undo button click
+        $('#undo-btn').click(function() {
+            $.post('{% url "core:undo_admin_change" %}', {
+                'model_name': 'Product',
+                'object_id': {{ object_id|default:0 }},
+                'csrfmiddlewaretoken': '{{ csrf_token }}'
+            })
+            .done(function(data) {
+                if (data.status === 'success') {
+                    $('#undo-notification').removeClass('show');
+                    location.reload();
+                } else {
+                    alert('Error: ' + data.message);
+                }
+            })
+            .fail(function() {
+                alert('Failed to undo changes');
+            });
+        });
+    }
+});
+</script>
+{% endblock %}

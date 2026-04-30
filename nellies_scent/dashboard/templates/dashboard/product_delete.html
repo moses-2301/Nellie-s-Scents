@@ -1,0 +1,15 @@
+{% extends 'dashboard/base.html' %}
+{% block title %}Delete Product{% endblock %}
+{% block subtitle %}<span class="page-label">Delete Product</span>{% endblock %}
+{% block content %}
+<div class="confirm-panel">
+    <h2>Delete product</h2>
+    <p>Are you sure you want to permanently remove <strong>{{ product.name }}</strong> from the catalog?</p>
+
+    <form method="post" class="confirm-actions">
+        {% csrf_token %}
+        <button type="submit" class="button danger">Delete</button>
+        <a href="{% url 'dashboard:products' %}" class="button secondary">Cancel</a>
+    </form>
+</div>
+{% endblock %}

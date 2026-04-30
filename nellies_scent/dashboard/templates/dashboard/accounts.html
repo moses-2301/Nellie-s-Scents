@@ -1,0 +1,31 @@
+{% extends 'dashboard/base.html' %}
+{% block title %}Accounts{% endblock %}
+{% block subtitle %}<span class="page-label">Accounts</span>{% endblock %}
+{% block content %}
+<div class="section-head">
+    <h2>Connected accounts</h2>
+    <p>Review which social providers are linked to your admin account.</p>
+</div>
+<div class="table-card">
+    <table>
+        <thead>
+            <tr>
+                <th>Provider</th>
+                <th>Username</th>
+                <th>Connected</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for account in linked_accounts %}
+            <tr>
+                <td>{{ account.provider|title }}</td>
+                <td>{{ account.uid }}</td>
+                <td>{{ account.user.date_joined|date:'M d, Y' }}</td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="3">No connected social accounts.</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

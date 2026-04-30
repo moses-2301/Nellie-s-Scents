@@ -1,0 +1,35 @@
+{% extends 'dashboard/base.html' %}
+{% block title %}Authentication{% endblock %}
+{% block subtitle %}<span class="page-label">Authentication & Authorization</span>{% endblock %}
+{% block content %}
+<div class="section-head">
+    <h2>Manage authentication</h2>
+    <p>Review users and their access levels.</p>
+</div>
+<div class="table-card">
+    <table>
+        <thead>
+            <tr>
+                <th>Username</th>
+                <th>Email</th>
+                <th>Active</th>
+                <th>Staff</th>
+                <th>Admin</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for user in users %}
+            <tr>
+                <td>{{ user.username }}</td>
+                <td>{{ user.email }}</td>
+                <td>{{ user.is_active }}</td>
+                <td>{{ user.is_staff }}</td>
+                <td>{{ user.is_superuser }}</td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="5">No users available.</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

@@ -1,0 +1,428 @@
+{% extends 'core/base.html' %}
+{% block title %}About | Nellie's Scent{% endblock %}
+{% block content %}
+<style>
+    @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,600&family=DM+Sans:wght@300;400;500&display=swap');
+
+    .about-hero {
+        background: linear-gradient(150deg, #fdf0f6 0%, #fce4f0 60%, #f9d8e6 100%);
+        padding: 5rem 0 4rem;
+        position: relative;
+        overflow: hidden;
+    }
+    .about-hero::before {
+        content: '';
+        position: absolute;
+        width: 500px; height: 500px;
+        border-radius: 50%;
+        background: rgba(215,53,133,0.04);
+        top: -150px; right: -100px;
+        pointer-events: none;
+    }
+    .about-hero::after {
+        content: '';
+        position: absolute;
+        width: 300px; height: 300px;
+        border-radius: 50%;
+        background: rgba(215,53,133,0.05);
+        bottom: -100px; left: -80px;
+        pointer-events: none;
+    }
+    .about-hero h1 {
+        font-family: 'Cormorant Garamond', serif;
+        font-size: clamp(2.5rem, 5vw, 4rem);
+        font-weight: 600;
+        color: #8b1a4a;
+        line-height: 1.1;
+        margin-bottom: 0.5rem;
+    }
+    .about-hero h1 em {
+        font-style: italic;
+        color: #D73585;
+    }
+    .about-hero .lead {
+        font-family: 'DM Sans', sans-serif;
+        font-size: 1.1rem;
+        color: #7a4a60;
+        font-weight: 300;
+        max-width: 540px;
+        line-height: 1.7;
+    }
+    .about-hero .origin-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        background: rgba(215,53,133,0.08);
+        border: 1px solid rgba(215,53,133,0.2);
+        color: #D73585;
+        font-family: 'DM Sans', sans-serif;
+        font-size: 0.8rem;
+        font-weight: 500;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        padding: 0.4rem 1rem;
+        border-radius: 50px;
+        margin-bottom: 1.5rem;
+    }
+
+    /* Story section */
+    .story-section {
+        padding: 5rem 0;
+    }
+    .story-section p {
+        font-family: 'DM Sans', sans-serif;
+        font-size: 1.05rem;
+        color: #444;
+        line-height: 1.85;
+        text-align: justify;
+    }
+    .story-section h2 {
+        font-family: 'Cormorant Garamond', serif;
+        font-size: 2.2rem;
+        font-weight: 600;
+        color: #8b1a4a;
+        margin-bottom: 1.25rem;
+    }
+
+    /* Feature cards */
+    .feature-card {
+        padding: 1.75rem;
+        border-radius: 16px;
+        background: #fff;
+        border: 1px solid #f5e6ef;
+        transition: all 0.25s ease;
+        height: 100%;
+    }
+    .feature-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 12px 32px rgba(215,53,133,0.1);
+        border-color: #f0c8dc;
+    }
+    .feature-icon {
+        width: 52px; height: 52px;
+        border-radius: 14px;
+        background: linear-gradient(135deg, #fce4f0, #f9d0e6);
+        display: flex; align-items: center; justify-content: center;
+        margin-bottom: 1rem;
+        font-size: 1.3rem;
+        color: #D73585;
+    }
+    .feature-card h6 {
+        font-family: 'DM Sans', sans-serif;
+        font-size: 0.95rem;
+        font-weight: 600;
+        color: #1a1a1a;
+        margin-bottom: 0.4rem;
+    }
+    .feature-card p {
+        font-family: 'DM Sans', sans-serif;
+        font-size: 0.85rem;
+        color: #888;
+        margin: 0;
+        line-height: 1.55;
+    }
+
+    /* Values section */
+    .values-section {
+        background: linear-gradient(135deg, #1a0a12 0%, #2d1020 100%);
+        padding: 5rem 0;
+        position: relative;
+        overflow: hidden;
+    }
+    .values-section::before {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23D73585' fill-opacity='0.04'%3E%3Ccircle cx='30' cy='30' r='1'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+    }
+    .values-section h2 {
+        font-family: 'Cormorant Garamond', serif;
+        font-size: 2.5rem;
+        font-weight: 600;
+        color: #fff;
+        text-align: center;
+        margin-bottom: 0.5rem;
+    }
+    .values-section .section-sub {
+        text-align: center;
+        color: rgba(255,255,255,0.5);
+        font-family: 'DM Sans', sans-serif;
+        font-size: 0.9rem;
+        margin-bottom: 3rem;
+    }
+    .value-card {
+        background: rgba(255,255,255,0.04);
+        border: 1px solid rgba(215,53,133,0.2);
+        border-radius: 20px;
+        padding: 2rem 1.75rem;
+        text-align: center;
+        transition: all 0.25s ease;
+        position: relative;
+        z-index: 1;
+        height: 100%;
+    }
+    .value-card:hover {
+        background: rgba(215,53,133,0.08);
+        border-color: rgba(215,53,133,0.4);
+        transform: translateY(-4px);
+    }
+    .value-card .value-icon {
+        font-size: 2.2rem;
+        color: #D73585;
+        margin-bottom: 1rem;
+        display: block;
+    }
+    .value-card h5 {
+        font-family: 'Cormorant Garamond', serif;
+        font-size: 1.4rem;
+        font-weight: 600;
+        color: #fff;
+        margin-bottom: 0.75rem;
+    }
+    .value-card p {
+        font-family: 'DM Sans', sans-serif;
+        font-size: 0.88rem;
+        color: rgba(255,255,255,0.6);
+        line-height: 1.65;
+        margin: 0;
+    }
+
+    /* Stats section */
+    .stats-section {
+        padding: 4.5rem 0;
+        background: #fff;
+    }
+    .stat-item {
+        text-align: center;
+        padding: 1.5rem;
+    }
+    .stat-number {
+        font-family: 'Cormorant Garamond', serif;
+        font-size: 3.5rem;
+        font-weight: 600;
+        color: #D73585;
+        line-height: 1;
+        display: block;
+    }
+    .stat-label {
+        font-family: 'DM Sans', sans-serif;
+        font-size: 0.85rem;
+        color: #999;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        margin-top: 0.5rem;
+        display: block;
+    }
+    .stat-divider {
+        width: 1px;
+        background: #f0e0e8;
+        align-self: stretch;
+    }
+
+    /* CTA */
+    .cta-section {
+        padding: 5rem 0;
+        background: linear-gradient(135deg, #fdf0f6, #fce4f0);
+        text-align: center;
+    }
+    .cta-section h2 {
+        font-family: 'Cormorant Garamond', serif;
+        font-size: 2.5rem;
+        font-weight: 600;
+        color: #8b1a4a;
+        margin-bottom: 0.75rem;
+    }
+    .cta-section p {
+        font-family: 'DM Sans', sans-serif;
+        color: #a0526a;
+        margin-bottom: 2rem;
+        font-size: 1rem;
+    }
+    .btn-cta {
+        background: linear-gradient(135deg, #D73585, #b02070);
+        color: #fff;
+        border: none;
+        padding: 0.85rem 2.5rem;
+        border-radius: 50px;
+        font-family: 'DM Sans', sans-serif;
+        font-size: 0.95rem;
+        font-weight: 500;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        transition: all 0.2s ease;
+        letter-spacing: 0.02em;
+    }
+    .btn-cta:hover {
+        background: linear-gradient(135deg, #c02d78, #9a1a62);
+        transform: translateY(-2px);
+        box-shadow: 0 8px 24px rgba(215,53,133,0.3);
+        color: #fff;
+    }
+</style>
+
+<main class="main-content mt-5">
+
+    <!-- Hero -->
+    <section class="about-hero">
+        <div class="container" style="position:relative;z-index:1;">
+            <div class="origin-badge">
+                <i class="fas fa-map-marker-alt"></i> From Calabar to Abuja
+            </div>
+            <h1>About <em>Nellie's</em><br>Scent</h1>
+            <p class="lead mt-3">
+                We create premium perfumes that blend sophistication,
+                confidence, and everyday luxury — curated for the modern woman.
+            </p>
+
+            <div class="row g-3 mt-4" style="max-width:580px;">
+                <div class="col-6 col-md-3">
+                    <div class="feature-card">
+                        <div class="feature-icon"><i class="fas fa-flask"></i></div>
+                        <h6>Curated Ingredients</h6>
+                        <p>Premium fragrances for a timeless aroma</p>
+                    </div>
+                </div>
+                <div class="col-6 col-md-3">
+                    <div class="feature-card">
+                        <div class="feature-icon"><i class="fas fa-palette"></i></div>
+                        <h6>Modern Design</h6>
+                        <p>Elegant packaging & bottle design</p>
+                    </div>
+                </div>
+                <div class="col-6 col-md-3">
+                    <div class="feature-card">
+                        <div class="feature-icon"><i class="fas fa-heart"></i></div>
+                        <h6>Customer Care</h6>
+                        <p>Focused on quality & support</p>
+                    </div>
+                </div>
+                <div class="col-6 col-md-3">
+                    <div class="feature-card">
+                        <div class="feature-icon"><i class="fas fa-shield-alt"></i></div>
+                        <h6>Trustworthy</h6>
+                        <p>Reliable service & authentic products</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Story -->
+    <section class="story-section">
+        <div class="container">
+            <div class="row align-items-center g-5">
+                <div class="col-lg-6">
+                    <h2>Our Story</h2>
+                    <p>
+                        Our story began in Calabar with a passion for elegant fragrance composition
+                        and a desire to celebrate individual expression. After moving to Abuja, we
+                        decided to extend our business, bringing sophisticated scents to the Nigerian
+                        market.
+                    </p>
+                    <p>
+                        Each bottle is designed to evoke a memorable moment, whether you're dressing
+                        for a special evening or elevating your daily routine. We believe fragrance
+                        is the invisible part of your personality — the one that lingers long after
+                        you've left the room.
+                    </p>
+                </div>
+                <div class="col-lg-6">
+                    <div style="background:linear-gradient(135deg,#fce4f0,#f9d8e6);border-radius:24px;padding:2.5rem;text-align:center;">
+                        <i class="fas fa-spray-can" style="font-size:5rem;color:#D73585;opacity:0.3;"></i>
+                        <blockquote style="font-family:'Cormorant Garamond',serif;font-size:1.5rem;font-style:italic;color:#8b1a4a;margin-top:1.5rem;line-height:1.4;">
+                            "Fragrance is the invisible part of your personality."
+                        </blockquote>
+                        <cite style="font-family:'DM Sans',sans-serif;font-size:0.8rem;color:#a0526a;letter-spacing:0.08em;text-transform:uppercase;">— Nellie's Scent</cite>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Values -->
+    <section class="values-section">
+        <div class="container" style="position:relative;z-index:1;">
+            <h2>Our Core Values</h2>
+            <p class="section-sub">The principles that guide everything we create</p>
+            <div class="row g-4">
+                <div class="col-md-4">
+                    <div class="value-card">
+                        <span class="value-icon"><i class="fas fa-gem"></i></span>
+                        <h5>Quality</h5>
+                        <p>
+                            Every product undergoes strict quality control to ensure the highest
+                            standards in fragrance composition and packaging.
+                        </p>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="value-card">
+                        <span class="value-icon"><i class="fas fa-lightbulb"></i></span>
+                        <h5>Innovation</h5>
+                        <p>
+                            We continuously explore new fragrance blends and packaging designs to
+                            stay at the forefront of the perfume industry.
+                        </p>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="value-card">
+                        <span class="value-icon"><i class="fas fa-earth-africa"></i></span>
+                        <h5>Sustainability</h5>
+                        <p>
+                            We are committed to sustainable practices in sourcing ingredients and
+                            minimising our environmental impact.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Stats -->
+    <section class="stats-section">
+        <div class="container">
+            <div class="row justify-content-center g-0">
+                <div class="col-6 col-md-3">
+                    <div class="stat-item">
+                        <span class="stat-number">70+</span>
+                        <span class="stat-label">Happy Customers</span>
+                    </div>
+                </div>
+                <div class="col-6 col-md-3">
+                    <div class="stat-item">
+                        <span class="stat-number">25+</span>
+                        <span class="stat-label">Fragrance Varieties</span>
+                    </div>
+                </div>
+                <div class="col-6 col-md-3">
+                    <div class="stat-item">
+                        <span class="stat-number">36</span>
+                        <span class="stat-label">States Delivered To</span>
+                    </div>
+                </div>
+                <div class="col-6 col-md-3">
+                    <div class="stat-item">
+                        <span class="stat-number">'24</span>
+                        <span class="stat-label">Est. Since</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- CTA -->
+    <section class="cta-section">
+        <div class="container">
+            <h2>Ready to experience luxury?</h2>
+            <p>Explore our full collection of premium fragrances</p>
+            <a href="{% url 'core:shop' %}" class="btn-cta">
+                <i class="fas fa-shopping-bag"></i> Shop Now
+            </a>
+        </div>
+    </section>
+
+</main>
+{% endblock %}

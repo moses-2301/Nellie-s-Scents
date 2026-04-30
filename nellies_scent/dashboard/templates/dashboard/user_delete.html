@@ -1,0 +1,17 @@
+{% extends 'dashboard/base.html' %}
+{% block title %}Delete User{% endblock %}
+{% block subtitle %}<span class="page-label">Delete User</span>{% endblock %}
+{% block content %}
+<section class="detail-card">
+    <h3>Delete User: {{ user.username }}</h3>
+    <p>Are you sure you want to delete the user "{{ user.username }}"?</p>
+    <p>This action cannot be undone.</p>
+    <form method="post" class="dashboard-form">
+        {% csrf_token %}
+        <div class="form-actions">
+            <button type="submit" class="button danger">Delete</button>
+            <a href="{% url 'dashboard:users' %}" class="button secondary">Cancel</a>
+        </div>
+    </form>
+</section>
+{% endblock %}

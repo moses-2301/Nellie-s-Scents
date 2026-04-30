@@ -1,0 +1,204 @@
+{% extends 'dashboard/base.html' %}
+{% block title %}Connected Social Accounts{% endblock %}
+{% block subtitle %}<span class="page-label">Connected Social Accounts</span>{% endblock %}
+
+{% block content %}
+<div class="section-head">
+    <div>
+        <h2>Connected Social Accounts</h2>
+        <p>View and manage user accounts linked to external providers.</p>
+    </div>
+</div>
+
+<div class="grid-grid">
+    <div class="metric-card">
+        <p>Total linked accounts</p>
+        <h3>{{ total_accounts }}</h3>
+    </div>
+    <div class="metric-card">
+        <p>Active tokens</p>
+        <h3>{{ total_tokens }}</h3>
+    </div>
+</div>
+
+<div class="tabs" style="margin: 24px 0;">
+    <a href="?&tab=accounts" class="tab active">Accounts</a>
+    <a href="?&tab=tokens" class="tab">Tokens</a>
+</div>
+
+<!-- Linked Accounts Tab -->
+<div class="table-card">
+    <div class="page-toolbar">
+        <form method="get" class="toolbar-search">
+            <input type="text" name="q" placeholder="Search by username or UID..." class="form-control" value="{{ account_search }}">
+            <button type="submit" class="button secondary">Search</button>
+        </form>
+    </div>
+
+    {% if accounts %}
+    <table>
+        <thead>
+            <tr>
+                <th>User</th>
+                <th>Provider</th>
+                <th>UID</th>
+                <th>Connected Date</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for account in accounts %}
+            <tr>
+                <td>
+                    <strong>{{ account.user.username }}</strong><br>
+                    <span style="color: var(--muted); font-size: 12px;">{{ account.user.email }}</span>
+                </td>
+                <td>
+                    <span class="provider-badge provider-{{ account.provider }}">
+                        {{ account.provider|title }}
+                    </span>
+                </td>
+                <td>
+                    <code>{{ account.uid|truncatewords:2 }}</code>
+                </td>
+                <td>{{ account.date_joined|date:'M d, Y H:i' }}</td>
+                <td>
+                    <form method="post" action="{% url 'dashboard:social_account_disconnect' account.id %}" style="display: inline;">
+                        {% csrf_token %}
+                        <button type="submit" class="button danger" onclick="return confirm('Disconnect this account?')">Disconnect</button>
+                    </form>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <div style="text-align: center; padding: 40px 20px;">
+        <p style="color: var(--muted);">No linked social accounts found.</p>
+    </div>
+    {% endif %}
+</div>
+
+<!-- Social Tokens Tab (Hidden by default, shown with JS) -->
+<div id="tokens-section" class="table-card" style="display: none; margin-top: 24px;">
+    {% if tokens %}
+    <table>
+        <thead>
+            <tr>
+                <th>User</th>
+                <th>Provider</th>
+                <th>Token (Partial)</th>
+                <th>Expires</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for token in tokens %}
+            <tr>
+                <td>{{ token.account.user.username }}</td>
+                <td>
+                    <span class="provider-badge provider-{{ token.account.provider }}">
+                        {{ token.account.provider|title }}
+                    </span>
+                </td>
+                <td>
+                    <code class="token-masked">{{ token.token|slice:":4" }}••••••••{{ token.token|slice:"-4:" }}</code>
+                </td>
+                <td>
+                    {% if token.expires_at %}
+                        {{ token.expires_at|date:'M d, Y' }}
+                    {% else %}
+                        <span style="color: var(--muted);">Never</span>
+                    {% endif %}
+                </td>
+                <td>
+                    <form method="post" action="{% url 'dashboard:social_token_revoke' token.id %}" style="display: inline;">
+                        {% csrf_token %}
+                        <button type="submit" class="button danger" onclick="return confirm('Revoke this token?')">Revoke</button>
+                    </form>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <div style="text-align: center; padding: 40px 20px;">
+        <p style="color: var(--muted);">No stored social tokens found.</p>
+    </div>
+    {% endif %}
+</div>
+
+<style>
+.provider-badge {
+    display: inline-block;
+    padding: 6px 12px;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 600;
+    width: fit-content;
+}
+
+.provider-google { background: #4285F4; color: white; }
+.provider-apple { background: #000; color: white; }
+.provider-facebook { background: #1877F2; color: white; }
+.provider-github { background: #333; color: white; }
+.provider-linkedin { background: #0A66C2; color: white; }
+
+.token-masked {
+    background: var(--surface-strong);
+    padding: 4px 8px;
+    border-radius: 6px;
+    font-size: 12px;
+    font-family: 'Monaco', 'Courier New', monospace;
+}
+
+.tabs {
+    display: flex;
+    gap: 10px;
+    border-bottom: 2px solid var(--border);
+}
+
+.tab {
+    padding: 10px 16px;
+    cursor: pointer;
+    color: var(--muted);
+    text-decoration: none;
+    border-bottom: 2px solid transparent;
+    margin-bottom: -2px;
+    transition: all 0.2s ease;
+}
+
+.tab:hover {
+    color: var(--text);
+}
+
+.tab.active {
+    color: var(--primary);
+    border-bottom-color: var(--primary);
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const tabs = document.querySelectorAll('.tab');
+    const accountsSection = document.querySelector('.table-card');
+    const tokensSection = document.getElementById('tokens-section');
+
+    tabs.forEach(tab => {
+        tab.addEventListener('click', function(e) {
+            e.preventDefault();
+            tabs.forEach(t => t.classList.remove('active'));
+            this.classList.add('active');
+
+            if (this.textContent.includes('Accounts')) {
+                accountsSection.style.display = 'block';
+                tokensSection.style.display = 'none';
+            } else {
+                accountsSection.style.display = 'none';
+                tokensSection.style.display = 'block';
+            }
+        });
+    });
+});
+</script>
+{% endblock %}

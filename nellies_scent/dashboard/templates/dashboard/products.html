@@ -1,0 +1,42 @@
+{% extends 'dashboard/base.html' %}
+{% block title %}Products{% endblock %}
+{% block subtitle %}<span class="page-label">Products</span>{% endblock %}
+{% block content %}
+<div class="page-toolbar">
+    <form method="get" class="toolbar-search">
+        <input type="text" name="q" value="{{ search_query }}" placeholder="Search products" />
+        <button class="button secondary">Search</button>
+    </form>
+    <a href="{% url 'dashboard:product_create' %}" class="button primary">Add Product</a>
+</div>
+
+<div class="table-card">
+    <table>
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Category</th>
+                <th>Stock</th>
+                <th>Price</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for product in products %}
+            <tr>
+                <td>{{ product.name }}</td>
+                <td>{{ product.get_category_display_name }}</td>
+                <td>{{ product.stock }}</td>
+                <td>₦{{ product.price }}</td>
+                <td class="table-actions">
+                    <a href="{% url 'dashboard:product_edit' product.id %}" class="button ghost">Edit</a>
+                    <a href="{% url 'dashboard:product_delete' product.id %}" class="button danger">Delete</a>
+                </td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="5">No products found.</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

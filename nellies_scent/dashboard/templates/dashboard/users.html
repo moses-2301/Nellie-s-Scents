@@ -1,0 +1,41 @@
+{% extends 'dashboard/base.html' %}
+{% block title %}Users{% endblock %}
+{% block subtitle %}<span class="page-label">Users</span>{% endblock %}
+{% block content %}
+<div class="page-toolbar">
+    <a href="{% url 'dashboard:user_create' %}" class="button primary">Create User</a>
+    <form method="get" class="toolbar-search">
+        <input type="text" name="q" value="{{ search_query }}" placeholder="Search users" />
+        <button class="button secondary">Search</button>
+    </form>
+</div>
+<div class="table-card">
+    <table>
+        <thead>
+            <tr>
+                <th>Username</th>
+                <th>Email</th>
+                <th>Joined</th>
+                <th>Permissions</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for user in users %}
+            <tr>
+                <td>{{ user.username }}</td>
+                <td>{{ user.email }}</td>
+                <td>{{ user.date_joined|date:'M d, Y' }}</td>
+                <td>{% if user.is_superuser %}Admin{% elif user.is_staff %}Staff{% else %}Customer{% endif %}</td>
+                <td class="table-actions">
+                    <a href="{% url 'dashboard:user_detail' user.id %}" class="button ghost">View</a>
+                    <a href="{% url 'dashboard:user_delete' user.id %}" class="button danger">Delete</a>
+                </td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="5">No users found.</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

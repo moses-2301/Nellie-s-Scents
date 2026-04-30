@@ -1,0 +1,14 @@
+{% extends 'dashboard/base.html' %}
+{% block title %}Message from {{ message.name }}{% endblock %}
+{% block subtitle %}<span class="page-label">Message detail</span>{% endblock %}
+{% block content %}
+<div class="detail-card">
+    <h2>{{ message.name }}</h2>
+    <p><strong>Email:</strong> {{ message.email }}</p>
+    <p><strong>Received:</strong> {{ message.created_at|date:'M d, Y H:i' }}</p>
+    <div class="message-body">
+        <p>{{ message.message }}</p>
+    </div>
+    <a href="{% url 'dashboard:messages' %}" class="button secondary">Back to messages</a>
+</div>
+{% endblock %}

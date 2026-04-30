@@ -1,0 +1,545 @@
+{% extends 'core/base.html' %}
+{% block title %}Shop | Nellie's Scent{% endblock %}
+{% block content %}
+{% csrf_token %}
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400&family=DM+Sans:wght@300;400;500&display=swap');
+
+.shop-page { font-family: 'DM Sans', sans-serif; }
+
+/* ── Shop hero header ─────────────────────────────── */
+.shop-hero {
+    background: linear-gradient(150deg, #1a0a12 0%, #2d1020 55%, #3d1830 100%);
+    padding: 5.5rem 0 3.5rem;
+    position: relative;
+    overflow: hidden;
+}
+.shop-hero::before {
+    content: '';
+    position: absolute;
+    width: 500px; height: 500px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(215,53,133,0.1) 0%, transparent 70%);
+    top: -150px; right: -100px;
+}
+.shop-hero .eyebrow {
+    font-size: 0.72rem;
+    color: #D73585;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    font-weight: 500;
+    margin-bottom: 0.5rem;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+.shop-hero .eyebrow::before {
+    content: '';
+    display: inline-block;
+    width: 24px; height: 1px;
+    background: #D73585;
+}
+.shop-hero h1 {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: clamp(2rem, 4vw, 3.2rem);
+    font-weight: 600;
+    color: #fff;
+    margin-bottom: 0.5rem;
+    position: relative; z-index: 1;
+}
+.shop-hero p {
+    color: rgba(255,255,255,0.5);
+    font-size: 0.95rem;
+    font-weight: 300;
+    position: relative; z-index: 1;
+}
+
+/* ── Filter bar ───────────────────────────────────── */
+.filter-bar {
+    background: #fff;
+    border-bottom: 1px solid #f5e6ef;
+    padding: 1.25rem 0;
+    position: sticky;
+    top: 66px;
+    z-index: 100;
+    box-shadow: 0 2px 12px rgba(215,53,133,0.05);
+}
+.filter-search {
+    display: flex;
+    align-items: center;
+    background: #fafafa;
+    border: 1.5px solid #eeecec;
+    border-radius: 10px;
+    overflow: hidden;
+    transition: border-color 0.2s;
+}
+.filter-search:focus-within { border-color: #D73585; }
+.filter-search input {
+    border: none;
+    background: transparent;
+    padding: 0.6rem 0.9rem;
+    font-size: 0.88rem;
+    color: #1a1a1a;
+    flex: 1;
+    outline: none;
+    font-family: 'DM Sans', sans-serif;
+}
+.filter-search button {
+    border: none;
+    background: #D73585;
+    color: #fff;
+    padding: 0.6rem 0.9rem;
+    cursor: pointer;
+    transition: background 0.2s;
+    font-size: 0.82rem;
+}
+.filter-search button:hover { background: #b02070; }
+
+.filter-select {
+    border: 1.5px solid #eeecec;
+    border-radius: 10px;
+    padding: 0.6rem 0.9rem;
+    font-size: 0.88rem;
+    font-family: 'DM Sans', sans-serif;
+    color: #555;
+    background: #fafafa;
+    outline: none;
+    cursor: pointer;
+    transition: border-color 0.2s;
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23D73585' stroke-width='2'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 0.75rem center;
+    padding-right: 2.25rem;
+    min-width: 180px;
+}
+.filter-select:focus { border-color: #D73585; }
+
+/* Active filter pill */
+.filter-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: rgba(215,53,133,0.08);
+    border: 1px solid rgba(215,53,133,0.2);
+    color: #D73585;
+    font-size: 0.78rem;
+    font-weight: 500;
+    padding: 0.3rem 0.75rem;
+    border-radius: 50px;
+}
+.filter-pill a { color: #D73585; text-decoration: none; margin-left: 2px; }
+.filter-pill a:hover { color: #b02070; }
+
+.results-count {
+    font-size: 0.82rem;
+    color: #aaa;
+    white-space: nowrap;
+}
+
+/* ── Product grid ─────────────────────────────────── */
+.shop-grid { padding: 2.5rem 0 5rem; }
+
+.ns-shop-card {
+    background: #fff;
+    border: 1px solid #f5e6ef;
+    border-radius: 16px;
+    overflow: hidden;
+    transition: all 0.25s ease;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+}
+.ns-shop-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 14px 36px rgba(215,53,133,0.1);
+    border-color: #f0c8dc;
+}
+.ns-shop-card .img-wrap {
+    position: relative;
+    overflow: hidden;
+    aspect-ratio: 1 / 1;
+}
+.ns-shop-card .img-wrap img {
+    width: 100%; height: 100%;
+    object-fit: cover;
+    transition: transform 0.4s ease;
+}
+.ns-shop-card:hover .img-wrap img { transform: scale(1.05); }
+.ns-shop-card .cat-badge {
+    position: absolute;
+    top: 10px; left: 10px;
+    background: rgba(215,53,133,0.85);
+    color: #fff;
+    font-size: 0.65rem;
+    font-weight: 500;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    padding: 0.25rem 0.6rem;
+    border-radius: 50px;
+    backdrop-filter: blur(4px);
+}
+.ns-shop-card .stock-badge {
+    position: absolute;
+    top: 10px; right: 10px;
+    font-size: 0.65rem;
+    font-weight: 500;
+    padding: 0.25rem 0.6rem;
+    border-radius: 50px;
+}
+.stock-badge.in  { background: rgba(39,167,69,0.15);  color: #1a7a35; border: 1px solid rgba(39,167,69,0.2); }
+.stock-badge.out { background: rgba(220,53,69,0.12);  color: #7a1a1a; border: 1px solid rgba(220,53,69,0.15); }
+
+.ns-shop-card .card-body {
+    padding: 1.1rem 1.1rem 0;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+.ns-shop-card .c-name {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #1a1a1a;
+    line-height: 1.2;
+    margin-bottom: 0.2rem;
+}
+.ns-shop-card .c-meta {
+    font-size: 0.72rem;
+    color: #ccc;
+    margin-bottom: 0.5rem;
+}
+.ns-shop-card .c-desc {
+    font-size: 0.82rem;
+    color: #999;
+    line-height: 1.5;
+    flex: 1;
+    margin-bottom: 0.75rem;
+}
+.ns-shop-card .c-price {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.3rem;
+    font-weight: 600;
+    color: #D73585;
+    margin-bottom: 0.75rem;
+}
+
+/* Options panel */
+.options-panel {
+    display: none;
+    padding: 0.85rem 1.1rem 1.1rem;
+    border-top: 1px solid #f5e6ef;
+    background: #fdf5f9;
+}
+.options-panel.open { display: block; }
+
+.qty-row {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 0.75rem;
+}
+.qty-row label { font-size: 0.78rem; color: #888; font-weight: 500; }
+.qty-btn {
+    width: 28px; height: 28px;
+    border-radius: 7px;
+    border: 1.5px solid #f0c8dc;
+    background: #fff;
+    color: #D73585;
+    font-size: 1rem;
+    line-height: 1;
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    transition: all 0.15s;
+}
+.qty-btn:hover { background: #D73585; color: #fff; border-color: #D73585; }
+.qty-input {
+    width: 40px;
+    text-align: center;
+    border: 1.5px solid #f0c8dc;
+    border-radius: 7px;
+    padding: 0.25rem;
+    font-size: 0.88rem;
+    color: #1a1a1a;
+    background: #fff;
+    outline: none;
+}
+
+.btn-add-cart {
+    width: 100%;
+    background: linear-gradient(135deg, #D73585, #b02070);
+    color: #fff;
+    border: none;
+    padding: 0.6rem;
+    border-radius: 8px;
+    font-size: 0.85rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex; align-items: center; justify-content: center; gap: 6px;
+    margin-bottom: 0.5rem;
+    font-family: 'DM Sans', sans-serif;
+}
+.btn-add-cart:hover {
+    background: linear-gradient(135deg, #c02d78, #9a1a62);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 14px rgba(215,53,133,0.25);
+}
+.btn-view-detail {
+    width: 100%;
+    border: 1.5px solid #f0c8dc;
+    color: #D73585;
+    background: transparent;
+    padding: 0.55rem;
+    border-radius: 8px;
+    font-size: 0.82rem;
+    font-weight: 500;
+    text-decoration: none;
+    display: flex; align-items: center; justify-content: center; gap: 6px;
+    transition: all 0.2s;
+}
+.btn-view-detail:hover { background: #D73585; color: #fff; border-color: #D73585; }
+
+/* Toggle button at bottom of card */
+.btn-options-toggle {
+    width: 100%;
+    border: none;
+    background: transparent;
+    color: #D73585;
+    font-size: 0.82rem;
+    font-weight: 500;
+    padding: 0.6rem 1.1rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    transition: background 0.15s;
+    font-family: 'DM Sans', sans-serif;
+    border-top: 1px solid #f5e6ef;
+}
+.btn-options-toggle:hover { background: #fdf0f6; }
+.btn-options-toggle .toggle-icon { font-size: 0.65rem; transition: transform 0.2s; }
+.btn-options-toggle.open .toggle-icon { transform: rotate(180deg); }
+
+/* Empty state */
+.empty-state {
+    background: #fdf5f9;
+    border: 1px dashed #f0c8dc;
+    border-radius: 16px;
+    padding: 4rem 2rem;
+    text-align: center;
+}
+.empty-state h4 {
+    font-family: 'Cormorant Garamond', serif;
+    color: #8b1a4a;
+    font-size: 1.5rem;
+    margin-bottom: 0.5rem;
+}
+</style>
+
+<main class="shop-page">
+
+    <!-- Hero header -->
+    <div class="shop-hero">
+        <div class="container" style="position:relative;z-index:1;">
+            <p class="eyebrow">Our Collection</p>
+            <h1>Shop All Fragrances</h1>
+            <p>Handpicked perfumes at accessible luxury prices.</p>
+        </div>
+    </div>
+
+    <!-- Sticky filter bar -->
+    <div class="filter-bar">
+        <div class="container">
+            <div class="d-flex align-items-center gap-3 flex-wrap">
+
+                <!-- Search -->
+                <form method="GET" action="{% url 'core:shop' %}" class="filter-search" style="flex:1;min-width:220px;max-width:380px;">
+                    {% if selected_category %}
+                        <input type="hidden" name="category" value="{{ selected_category }}">
+                    {% endif %}
+                    <input type="text" name="q" placeholder="Search fragrances…" value="{{ search_query }}">
+                    <button type="submit"><i class="fas fa-search"></i></button>
+                </form>
+
+                <!-- Category -->
+                <form method="GET" action="{% url 'core:shop' %}">
+                    {% if search_query %}
+                        <input type="hidden" name="q" value="{{ search_query }}">
+                    {% endif %}
+                    <select name="category" class="filter-select" onchange="this.form.submit()">
+                        <option value="">All Categories</option>
+                        {% for value, label in categories %}
+                            <option value="{{ value }}" {% if selected_category == value %}selected{% endif %}>{{ label }}</option>
+                        {% endfor %}
+                    </select>
+                </form>
+
+                <!-- Active filters -->
+                {% if search_query %}
+                    <span class="filter-pill">
+                        <i class="fas fa-search" style="font-size:.65rem;"></i>
+                        "{{ search_query }}"
+                        <a href="{% url 'core:shop' %}{% if selected_category %}?category={{ selected_category }}{% endif %}">×</a>
+                    </span>
+                {% endif %}
+                {% if selected_category %}
+                    <span class="filter-pill">
+                        <i class="fas fa-tag" style="font-size:.65rem;"></i>
+                        {{ selected_category|title }}
+                        <a href="{% url 'core:shop' %}{% if search_query %}?q={{ search_query }}{% endif %}">×</a>
+                    </span>
+                {% endif %}
+
+                <span class="results-count ms-auto">
+                    {{ products|length }} product{{ products|length|pluralize }}
+                </span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Product grid -->
+    <div class="shop-grid">
+        <div class="container">
+            {% if products %}
+            <div class="row g-4">
+                {% for product in products %}
+                <div class="col-lg-4 col-md-6">
+                    <div class="ns-shop-card" id="product-{{ product.id }}">
+
+                        <!-- Image -->
+                        <div class="img-wrap">
+                            {% if product.image %}
+                                <img src="{{ product.image.url }}" alt="{{ product.name }}">
+                            {% else %}
+                                <img src="https://via.placeholder.com/400x400?text={{ product.name|urlencode }}" alt="{{ product.name }}">
+                            {% endif %}
+                            <span class="cat-badge">{{ product.get_category_display_name }}</span>
+                            {% if product.stock > 0 %}
+                                <span class="stock-badge in"><i class="fas fa-circle" style="font-size:.45rem;"></i> In Stock</span>
+                            {% else %}
+                                <span class="stock-badge out">Out of Stock</span>
+                            {% endif %}
+                        </div>
+
+                        <!-- Info -->
+                        <div class="card-body">
+                            <div class="c-name">{{ product.name }}</div>
+                            <div class="c-meta">{{ product.size }}{% if product.product_type %} · {{ product.product_type }}{% endif %}</div>
+                            <p class="c-desc">{{ product.description|truncatewords:14 }}</p>
+                            <div class="c-price">{{ product.get_price_ngn }}</div>
+                        </div>
+
+                        <!-- Toggle trigger -->
+                        {% if product.stock > 0 %}
+                        <button class="btn-options-toggle" id="toggle-{{ product.id }}"
+                                onclick="toggleOptions({{ product.id }})">
+                            Add to Cart <i class="fas fa-chevron-down toggle-icon"></i>
+                        </button>
+
+                        <!-- Options panel -->
+                        <div class="options-panel" id="options-{{ product.id }}">
+                            <div class="qty-row">
+                                <label>Qty:</label>
+                                <button type="button" class="qty-btn" onclick="decQty({{ product.id }})">−</button>
+                                <input type="number" class="qty-input" id="qty-{{ product.id }}"
+                                       value="1" min="1" max="{{ product.stock }}" readonly>
+                                <button type="button" class="qty-btn" onclick="incQty({{ product.id }}, {{ product.stock }})">+</button>
+                            </div>
+                            <button class="btn-add-cart" onclick="addToCart({{ product.id }}, '{{ product.size }}')">
+                                <i class="fas fa-shopping-bag"></i> Add to Cart
+                            </button>
+                            <a href="{% url 'core:product_detail' product.slug %}" class="btn-view-detail">
+                                <i class="fas fa-eye"></i> View Details
+                            </a>
+                        </div>
+                        {% else %}
+                        <div style="padding:.6rem 1.1rem 1.1rem;">
+                            <a href="{% url 'core:product_detail' product.slug %}" class="btn-view-detail">
+                                <i class="fas fa-eye"></i> View Details
+                            </a>
+                        </div>
+                        {% endif %}
+
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+
+            {% else %}
+            <div class="empty-state">
+                <i class="fas fa-search fa-3x mb-3" style="color:#f0c8dc;"></i>
+                <h4>No Products Found</h4>
+                <p class="text-muted small mb-3">Try a different search term or browse all categories.</p>
+                <a href="{% url 'core:shop' %}" style="color:#D73585;font-size:.85rem;text-decoration:none;">
+                    <i class="fas fa-arrow-left me-1"></i> Clear filters
+                </a>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+</main>
+
+<script>
+function toggleOptions(productId) {
+    const panel  = document.getElementById(`options-${productId}`);
+    const toggle = document.getElementById(`toggle-${productId}`);
+    const isOpen = panel.classList.contains('open');
+    // Close all others first
+    document.querySelectorAll('.options-panel.open').forEach(p => p.classList.remove('open'));
+    document.querySelectorAll('.btn-options-toggle.open').forEach(t => t.classList.remove('open'));
+    if (!isOpen) {
+        panel.classList.add('open');
+        toggle.classList.add('open');
+    }
+}
+
+function incQty(productId, maxStock) {
+    const input = document.getElementById(`qty-${productId}`);
+    if (parseInt(input.value) < maxStock) input.value = parseInt(input.value) + 1;
+}
+
+function decQty(productId) {
+    const input = document.getElementById(`qty-${productId}`);
+    if (parseInt(input.value) > 1) input.value = parseInt(input.value) - 1;
+}
+
+function addToCart(productId, size) {
+    const qty = parseInt(document.getElementById(`qty-${productId}`).value);
+
+    fetch("{% url 'core:add_to_cart' %}", {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': getCookie('csrftoken')
+        },
+        body: JSON.stringify({ product_id: productId, quantity: qty, size: size })
+    })
+    .then(r => r.json().then(data => ({ status: r.status, body: data })))
+    .then(({ body }) => {
+        if (body.status === 'success') {
+            // Fire event so base.html shows toast + refreshes sidebar
+            document.dispatchEvent(new CustomEvent('cartItemAdded', { detail: body }));
+            // Reset and close
+            document.getElementById(`qty-${productId}`).value = 1;
+            const panel  = document.getElementById(`options-${productId}`);
+            const toggle = document.getElementById(`toggle-${productId}`);
+            panel.classList.remove('open');
+            toggle.classList.remove('open');
+            return;
+        }
+        if (body.login_required) {
+            showToast(body.message || 'Please log in to add items.', 'error');
+            setTimeout(() => {
+                window.location.href = '{% url "account_login" %}?next=' + encodeURIComponent(window.location.href) + '&login_required=1';
+            }, 1200);
+            return;
+        }
+        showToast(body.message || 'Unable to add item to cart.', 'error');
+    })
+    .catch(() => showToast('Network error. Please try again.', 'error'));
+}
+</script>
+{% endblock %}

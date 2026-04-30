@@ -1,0 +1,218 @@
+{% extends 'dashboard/base.html' %}
+{% load static %}
+{% block title %}Social Accounts{% endblock %}
+{% block subtitle %}<span class="page-label">Social Accounts</span>{% endblock %}
+{% block content %}
+<div class="section-head">
+    <div>
+        <h2>Social Accounts Management</h2>
+        <p>Manage provider credentials, linked accounts, and access tokens for third-party authentication.</p>
+    </div>
+    <div class="page-toolbar">
+        <a href="?tab=apps" class="button ghost{% if active_tab == 'apps' %} active{% endif %}">Apps</a>
+        <a href="?tab=accounts" class="button ghost{% if active_tab == 'accounts' %} active{% endif %}">Connected</a>
+        <a href="?tab=tokens" class="button ghost{% if active_tab == 'tokens' %} active{% endif %}">Tokens</a>
+        <button type="button" class="button primary" id="open-provider-modal">Add Provider</button>
+    </div>
+</div>
+
+<div class="grid-grid">
+    <div class="metric-card">
+        <p>Active providers</p>
+        <h3>{{ active_providers }}</h3>
+    </div>
+    <div class="metric-card">
+        <p>Total providers</p>
+        <h3>{{ total_providers }}</h3>
+    </div>
+    <div class="metric-card">
+        <p>Connected accounts</p>
+        <h3>{{ total_accounts }}</h3>
+    </div>
+    <div class="metric-card">
+        <p>Stored tokens</p>
+        <h3>{{ total_tokens }}</h3>
+    </div>
+</div>
+
+<div class="tabs">
+    <a href="?tab=apps" class="tab{% if active_tab == 'apps' %} active{% endif %}">Social Apps</a>
+    <a href="?tab=accounts" class="tab{% if active_tab == 'accounts' %} active{% endif %}">Connected Accounts</a>
+    <a href="?tab=tokens" class="tab{% if active_tab == 'tokens' %} active{% endif %}">Social Tokens</a>
+</div>
+
+{% if active_tab == 'apps' %}
+<div class="table-card">
+    <div class="page-toolbar">
+        <form method="get" class="toolbar-search">
+            <input type="hidden" name="tab" value="apps">
+            <input type="text" name="q" placeholder="Search providers" class="form-control" value="{{ request.GET.q }}">
+            <button type="submit" class="button secondary">Search</button>
+        </form>
+    </div>
+    <table>
+        <thead>
+            <tr>
+                <th>Provider</th>
+                <th>Name</th>
+                <th>Sites</th>
+                <th>Status</th>
+                <th>Health</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for provider in providers %}
+            <tr>
+                <td>{{ provider.get_provider_display }}</td>
+                <td>{{ provider.name }}</td>
+                <td>{{ provider.sites.count }}</td>
+                <td>
+                    <span class="status-chip{% if provider.enabled %} status-active{% endif %}">{{ provider.enabled|yesno:'Active,Inactive' }}</span>
+                </td>
+                <td>{{ provider.get_health_label }}</td>
+                <td class="table-actions">
+                    <button type="button" class="button secondary open-provider-edit" data-provider-id="{{ provider.id }}" data-provider-name="{{ provider.name }}" data-provider-provider="{{ provider.provider }}" data-client-id="{{ provider.client_id }}" data-key="{{ provider.key }}" data-redirect-uris="{{ provider.redirect_uris|escapejs }}" data-enabled="{{ provider.enabled|yesno:'true,false' }}" data-sites="{% for site in provider.sites.all %}{{ site.id }}{% if not forloop.last %},{% endif %}{% endfor %}">Edit</button>
+                    <form method="post" action="{% url 'dashboard:social_provider_toggle' provider.id %}" style="display:inline;">
+                        {% csrf_token %}
+                        <button type="submit" class="button ghost">{{ provider.enabled|yesno:'Disable,Enable' }}</button>
+                    </form>
+                    <form method="post" action="{% url 'dashboard:social_provider_delete' provider.id %}" style="display:inline;">
+                        {% csrf_token %}
+                        <button type="submit" class="button danger">Delete</button>
+                    </form>
+                </td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="6">No social providers configured yet.</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% elif active_tab == 'accounts' %}
+<div class="table-card">
+    <div class="page-toolbar">
+        <form method="get" class="toolbar-search">
+            <input type="hidden" name="tab" value="accounts">
+            <input type="text" name="q" placeholder="Search user or UID" class="form-control" value="{{ account_search }}">
+            <button type="submit" class="button secondary">Search</button>
+        </form>
+    </div>
+    <table>
+        <thead>
+            <tr>
+                <th>User</th>
+                <th>Provider</th>
+                <th>UID</th>
+                <th>Connected</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for account in accounts %}
+            <tr>
+                <td>{{ account.user.username }}</td>
+                <td>{{ account.provider|title }}</td>
+                <td>{{ account.uid }}</td>
+                <td>{{ account.date_joined|date:'M d, Y' }}</td>
+                <td>
+                    <form method="post" action="{% url 'dashboard:social_account_disconnect' account.id %}">
+                        {% csrf_token %}
+                        <button type="submit" class="button danger">Disconnect</button>
+                    </form>
+                </td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="5">No social accounts found.</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% elif active_tab == 'tokens' %}
+<div class="table-card">
+    <table>
+        <thead>
+            <tr>
+                <th>User</th>
+                <th>Provider</th>
+                <th>Expiry</th>
+                <th>Token</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for token in tokens %}
+            <tr>
+                <td>{{ token.account.user.username }}</td>
+                <td>{{ token.account.provider|title }}</td>
+                <td>{% if token.expires_at %}{{ token.expires_at|date:'M d, Y' }}{% else %}None{% endif %}</td>
+                <td>{{ token.token|slice:":4" }}••••••••{{ token.token|slice:"-4:" }}</td>
+                <td>
+                    <form method="post" action="{% url 'dashboard:social_token_revoke' token.id %}" style="display:inline;">
+                        {% csrf_token %}
+                        <button type="submit" class="button danger">Revoke</button>
+                    </form>
+                </td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="5">No social tokens stored.</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endif %}
+
+<div id="provider-modal" class="modal hidden">
+    <div class="modal-panel">
+        <div class="modal-header">
+            <h3 id="modal-title">Add social provider</h3>
+            <button type="button" class="button ghost" id="modal-close">Close</button>
+        </div>
+        <form id="provider-form" method="post" action="{% url 'dashboard:social_provider_create' %}" class="dashboard-form">
+            {% csrf_token %}
+            <div class="form-grid">
+                <div class="form-group">
+                    <label for="id_provider">Provider</label>
+                    {{ provider_form.provider }}
+                </div>
+                <div class="form-group">
+                    <label for="id_name">App Name</label>
+                    {{ provider_form.name }}
+                </div>
+                <div class="form-group">
+                    <label for="id_client_id">Client ID</label>
+                    {{ provider_form.client_id }}
+                </div>
+                <div class="form-group">
+                    <label for="id_secret">Secret Key</label>
+                    {{ provider_form.secret }}
+                </div>
+                <div class="form-group">
+                    <label for="id_key">Key</label>
+                    {{ provider_form.key }}
+                </div>
+                <div class="form-group">
+                    <label for="id_redirect_uris">Redirect URIs</label>
+                    {{ provider_form.redirect_uris }}
+                    <div class="field-help">Enter one URI per line.</div>
+                </div>
+                <div class="form-group">
+                    <label for="id_sites">Sites</label>
+                    {{ provider_form.sites }}
+                </div>
+                <div class="form-group form-check">
+                    <label for="id_enabled">Enabled</label>
+                    {{ provider_form.enabled }}
+                </div>
+            </div>
+            <div class="form-actions">
+                <button type="submit" class="button primary" id="provider-submit">Save provider</button>
+                <button type="button" class="button secondary" id="modal-cancel">Cancel</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+{% block extra_scripts %}
+<script src="{% static 'dashboard/js/social-management.js' %}"></script>
+{% endblock %}

@@ -1,0 +1,59 @@
+{% extends 'dashboard/base.html' %}
+{% block title %}Orders{% endblock %}
+{% block subtitle %}<span class="page-label">Orders</span>{% endblock %}
+{% block content %}
+<div class="page-toolbar">
+    <form method="get" class="toolbar-search">
+        <input type="text" name="q" value="{{ search_query }}" placeholder="Search orders" />
+        <button class="button secondary">Search</button>
+    </form>
+    <form method="get" class="toolbar-filter">
+        <select name="status" class="form-select" onchange="this.form.submit()">
+            <option value="">All statuses</option>
+            {% for value, label in statuses %}
+                <option value="{{ value }}" {% if status_filter == value %}selected{% endif %}>{{ label }}</option>
+            {% endfor %}
+        </select>
+    </form>
+</div>
+<div class="table-card">
+    <table>
+        <thead>
+            <tr>
+                <th>Order</th>
+                <th>Customer</th>
+                <th>Total</th>
+                <th>Status</th>
+                <th>Payment</th>
+                <th>Created</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for order in orders %}
+            <tr>
+                <td>#{{ order.id }}</td>
+                <td>{{ order.full_name }}</td>
+                <td>₦{{ order.get_total }}</td>
+                <td>{{ order.get_status_display }}</td>
+                <td>
+                    {% if order.payment_status == 'success' %}
+                        <span class="badge bg-success">Paid</span>
+                    {% elif order.payment_status == 'failed' %}
+                        <span class="badge bg-danger">Failed</span>
+                    {% else %}
+                        <span class="badge bg-warning">Pending</span>
+                    {% endif %}
+                </td>
+                <td>{{ order.created_at|date:'M d, Y' }}</td>
+                <td class="table-actions">
+                    <a href="{% url 'dashboard:order_detail' order.id %}" class="button ghost">View</a>
+                </td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="7">No orders found.</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

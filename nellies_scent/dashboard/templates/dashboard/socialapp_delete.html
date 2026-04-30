@@ -1,0 +1,64 @@
+{% extends 'dashboard/base.html' %}
+{% block title %}Delete Social App{% endblock %}
+{% block subtitle %}<span class="page-label">Delete Social App</span>{% endblock %}
+
+{% block content %}
+<div class="section-head">
+    <h2>Delete Social App</h2>
+    <p>This action cannot be undone.</p>
+</div>
+
+<div class="confirm-panel">
+    <div style="margin-bottom: 24px;">
+        <h3>Are you sure?</h3>
+        <p>You are about to delete the following social app:</p>
+        
+        <div style="background: var(--surface-strong); padding: 16px; border-radius: 12px; margin: 16px 0;">
+            <strong>Provider:</strong> {{ app.get_provider_display }}<br>
+            <strong>App Name:</strong> {{ app.name }}<br>
+            <strong>Client ID:</strong> <code>{{ app.client_id|truncatewords:2 }}...</code>
+        </div>
+
+        <p style="color: var(--muted); margin-bottom: 0;">
+            This will permanently remove this OAuth app configuration. 
+            Users currently using this provider may experience login issues.
+        </p>
+    </div>
+
+    <div class="form-actions">
+        <form method="post" style="display: inline;">
+            {% csrf_token %}
+            <button type="submit" class="button danger">Yes, Delete App</button>
+        </form>
+        <a href="{% url 'dashboard:socialapp_list' %}" class="button secondary">Cancel</a>
+    </div>
+</div>
+
+<style>
+.confirm-panel {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 32px;
+    max-width: 600px;
+}
+
+.confirm-panel h3 {
+    margin-top: 0;
+    color: var(--text);
+}
+
+.confirm-panel p {
+    color: var(--muted);
+    line-height: 1.6;
+}
+
+code {
+    background: var(--surface-strong);
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-family: 'Monaco', 'Courier New', monospace;
+    font-size: 13px;
+}
+</style>
+{% endblock %}

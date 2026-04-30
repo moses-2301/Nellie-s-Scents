@@ -1,0 +1,38 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+
+# Virtual Environment
+venv/
+env/
+ENV/
+
+# Django stuff
+*.log
+local_settings.py
+db.sqlite3
+db.sqlite3-journal
+
+
+# Environment variables
+.env
+
+# Windows
+Thumbs.db
+
+# Pytest
+.pytest_cache/
+
+# Migrations cache
+*.sqlite3
+
+# Coverage reports
+htmlcov/
+.coverage
+.coverage.*
+
+
+# node modules (if frontend included)
+node_modules/

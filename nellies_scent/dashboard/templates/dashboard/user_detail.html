@@ -1,0 +1,40 @@
+{% extends 'dashboard/base.html' %}
+{% block title %}User {{ user.username }}{% endblock %}
+{% block subtitle %}<span class="page-label">User profile</span>{% endblock %}
+{% block content %}
+<div class="detail-grid">
+    <section class="detail-card">
+        <h3>{{ user.username }}</h3>
+        <p><strong>Name:</strong> {{ user.first_name }} {{ user.last_name }}</p>
+        <p><strong>Email:</strong> {{ user.email }}</p>
+        <p><strong>Joined:</strong> {{ user.date_joined|date:'M d, Y' }}</p>
+        <p><strong>Status:</strong> {% if user.is_active %}Active{% else %}Inactive{% endif %}</p>
+    </section>
+    <section class="detail-card">
+        <h3>Edit User</h3>
+        <form method="post" class="dashboard-form">
+            {% csrf_token %}
+            {% for field in form %}
+                <div class="form-group">
+                    <label>{{ field.label }}</label>
+                    {{ field }}
+                </div>
+            {% endfor %}
+            <div class="form-actions">
+                <button type="submit" class="button primary">Save</button>
+                <a href="{% url 'dashboard:users' %}" class="button secondary">Back</a>
+            </div>
+        </form>
+    </section>
+</div>
+<div class="detail-card full-width">
+    <h3>User Orders</h3>
+    <ul class="item-list">
+        {% for order in user_orders %}
+        <li><a href="{% url 'dashboard:order_detail' order.id %}">Order #{{ order.id }}</a> — {{ order.get_total_ngn }} — {{ order.get_status_display }}</li>
+        {% empty %}
+        <li>No orders for this user.</li>
+        {% endfor %}
+    </ul>
+</div>
+{% endblock %}

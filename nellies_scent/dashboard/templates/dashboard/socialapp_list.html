@@ -1,0 +1,117 @@
+{% extends 'dashboard/base.html' %}
+{% block title %}Social Apps{% endblock %}
+{% block subtitle %}<span class="page-label">Social Apps</span>{% endblock %}
+
+{% block content %}
+<div class="section-head">
+    <div>
+        <h2>Social Authentication Apps</h2>
+        <p>Manage OAuth provider credentials for Google, Apple, and other services.</p>
+    </div>
+    <a href="{% url 'dashboard:socialapp_create' %}" class="button primary">+ Add Social App</a>
+</div>
+
+<div class="metric-card" style="margin-bottom: 24px;">
+    <p>Total configured apps</p>
+    <h3>{{ apps.count }}</h3>
+</div>
+
+<div class="table-card">
+    <div class="page-toolbar">
+        <form method="get" class="toolbar-search">
+            <input type="text" name="q" placeholder="Search by provider or name..." class="form-control" value="{{ search }}">
+            <button type="submit" class="button secondary">Search</button>
+        </form>
+    </div>
+
+    {% if apps %}
+    <table>
+        <thead>
+            <tr>
+                <th>Provider</th>
+                <th>App Name</th>
+                <th>Client ID</th>
+                <th>Sites</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for app in apps %}
+            <tr>
+                <td>
+                    <span class="provider-badge provider-{{ app.provider }}">
+                        {{ app.get_provider_display }}
+                    </span>
+                </td>
+                <td>{{ app.name }}</td>
+                <td>
+                    <code class="client-id-masked">{{ app.client_id|truncatewords:2 }}...</code>
+                </td>
+                <td>
+                    <span class="site-count">
+                        {{ app.sites.count }} site{{ app.sites.count|pluralize }}
+                    </span>
+                </td>
+                <td class="table-actions">
+                    <a href="{% url 'dashboard:socialapp_edit' app.id %}" class="button secondary">Edit</a>
+                    <a href="{% url 'dashboard:socialapp_delete' app.id %}" class="button danger">Delete</a>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <div class="empty-state">
+        <p>No social apps configured yet.</p>
+        <p style="color: var(--muted); margin-top: 8px;">Create your first social app to enable external authentication.</p>
+        <a href="{% url 'dashboard:socialapp_create' %}" class="button primary" style="margin-top: 16px;">Create First App</a>
+    </div>
+    {% endif %}
+</div>
+
+<style>
+.provider-badge {
+    display: inline-block;
+    padding: 6px 12px;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 600;
+    width: fit-content;
+}
+
+.provider-google { background: #4285F4; color: white; }
+.provider-apple { background: #000; color: white; }
+.provider-facebook { background: #1877F2; color: white; }
+.provider-github { background: #333; color: white; }
+.provider-linkedin { background: #0A66C2; color: white; }
+
+.client-id-masked {
+    background: var(--surface-strong);
+    padding: 4px 8px;
+    border-radius: 6px;
+    font-size: 12px;
+    max-width: 200px;
+    display: inline-block;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.site-count {
+    background: rgba(214, 51, 132, 0.1);
+    color: var(--primary);
+    padding: 4px 8px;
+    border-radius: 6px;
+    font-size: 13px;
+    font-weight: 500;
+}
+
+.empty-state {
+    text-align: center;
+    padding: 40px 20px;
+}
+
+.empty-state p {
+    margin: 0;
+}
+</style>
+{% endblock %}

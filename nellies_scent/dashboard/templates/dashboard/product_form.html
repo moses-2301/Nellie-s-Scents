@@ -1,0 +1,25 @@
+{% extends 'dashboard/base.html' %}
+{% block title %}{{ page_title }}{% endblock %}
+{% block subtitle %}<span class="page-label">{{ page_title }}</span>{% endblock %}
+{% block content %}
+<div class="form-panel">
+    <form method="post" enctype="multipart/form-data" class="dashboard-form">
+        {% csrf_token %}
+        {{ form.non_field_errors }}
+        <div class="form-grid">
+            {% for field in form %}
+                <div class="form-group">
+                    <label>{{ field.label }}</label>
+                    {{ field }}
+                    {% if field.help_text %}<p class="field-help">{{ field.help_text }}</p>{% endif %}
+                    {% for error in field.errors %}<p class="field-error">{{ error }}</p>{% endfor %}
+                </div>
+            {% endfor %}
+        </div>
+        <div class="form-actions">
+            <button type="submit" class="button primary">Save</button>
+            <a href="{% url 'dashboard:products' %}" class="button secondary">Cancel</a>
+        </div>
+    </form>
+</div>
+{% endblock %}

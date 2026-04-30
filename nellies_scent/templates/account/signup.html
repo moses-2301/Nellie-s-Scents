@@ -1,0 +1,353 @@
+{% extends 'core/base.html' %}
+{% load static %}
+{% block title %}Sign Up | Nellie's Scent{% endblock %}
+
+{% block navbar %}{% endblock %}
+
+{% block content %}
+<style>
+    @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400&family=DM+Sans:wght@300;400;500&display=swap');
+
+    .auth-page {
+        min-height: 100vh;
+        display: flex;
+        background: #fff;
+        font-family: 'DM Sans', sans-serif;
+    }
+    .auth-panel-left {
+        width: 42%;
+        background: linear-gradient(155deg, #f9d8e6 0%, #f0b8d0 50%, #e896ba 100%);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 3rem;
+        position: relative;
+        overflow: hidden;
+    }
+    .auth-panel-left::before {
+        content: '';
+        position: absolute;
+        width: 320px; height: 320px;
+        border-radius: 50%;
+        background: rgba(255,255,255,0.15);
+        top: -80px; right: -80px;
+    }
+    .auth-panel-left::after {
+        content: '';
+        position: absolute;
+        width: 200px; height: 200px;
+        border-radius: 50%;
+        background: rgba(255,255,255,0.1);
+        bottom: -40px; left: -40px;
+    }
+    .auth-brand-name {
+        font-family: 'Cormorant Garamond', serif;
+        font-size: 3rem;
+        font-weight: 600;
+        color: #8b1a4a;
+        letter-spacing: 0.02em;
+        position: relative; z-index: 1;
+    }
+    .auth-brand-tagline {
+        font-size: 0.95rem;
+        color: #a0526a;
+        margin-top: 0.5rem;
+        font-weight: 300;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        position: relative; z-index: 1;
+    }
+    .auth-panel-left img {
+        width: 140px;
+        margin-bottom: 1.5rem;
+        position: relative; z-index: 1;
+        filter: drop-shadow(0 4px 12px rgba(139,26,74,0.2));
+    }
+    .auth-panel-left .scent-dots {
+        display: flex; gap: 8px; margin-top: 2rem;
+        position: relative; z-index: 1;
+    }
+    .auth-panel-left .scent-dots span {
+        width: 8px; height: 8px; border-radius: 50%;
+        background: rgba(139,26,74,0.3);
+    }
+    .auth-panel-left .scent-dots span:nth-child(2) { background: rgba(139,26,74,0.6); }
+    .auth-panel-left .scent-dots span:nth-child(3) { background: rgba(139,26,74,0.45); }
+
+    .auth-panel-right {
+        flex: 1;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 2.5rem;
+        background: #fff;
+        overflow-y: auto;
+    }
+    .auth-form-box {
+        width: 100%;
+        max-width: 420px;
+        padding: 1rem 0;
+    }
+    .auth-form-box h2 {
+        font-family: 'Cormorant Garamond', serif;
+        font-size: 2rem;
+        font-weight: 600;
+        color: #1a1a1a;
+        margin-bottom: 0.25rem;
+    }
+    .auth-form-box .auth-subtitle {
+        color: #888;
+        font-size: 0.9rem;
+        margin-bottom: 1.5rem;
+    }
+    .btn-social {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+        width: 100%;
+        padding: 0.7rem 1rem;
+        border-radius: 10px;
+        font-size: 0.9rem;
+        font-weight: 500;
+        border: 1.5px solid #e8e8e8;
+        background: #fff;
+        color: #333;
+        transition: all 0.2s ease;
+        text-decoration: none;
+        margin-bottom: 0.75rem;
+    }
+    .btn-social:hover {
+        border-color: #D73585;
+        background: #fdf5f9;
+        color: #D73585;
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(215,53,133,0.1);
+    }
+    .divider-text {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin: 1rem 0;
+        color: #bbb;
+        font-size: 0.82rem;
+    }
+    .divider-text::before, .divider-text::after {
+        content: ''; flex: 1;
+        height: 1px; background: #ececec;
+    }
+    .auth-field label {
+        font-size: 0.82rem;
+        font-weight: 500;
+        color: #555;
+        margin-bottom: 0.4rem;
+        display: block;
+    }
+    .auth-field input {
+        width: 100%;
+        padding: 0.65rem 0.9rem;
+        border: 1.5px solid #e8e8e8;
+        border-radius: 10px;
+        font-size: 0.9rem;
+        color: #1a1a1a;
+        background: #fafafa;
+        transition: border-color 0.2s, box-shadow 0.2s;
+        outline: none;
+    }
+    .auth-field input:focus {
+        border-color: #D73585;
+        background: #fff;
+        box-shadow: 0 0 0 3px rgba(215,53,133,0.08);
+    }
+    .auth-field { margin-bottom: 0.85rem; }
+    .auth-field .field-error {
+        color: #D73585;
+        font-size: 0.78rem;
+        margin-top: 4px;
+    }
+    .pw-match-msg {
+        font-size: 0.78rem;
+        margin-top: 4px;
+    }
+    .pw-match-msg.match { color: #27a745; }
+    .pw-match-msg.mismatch { color: #D73585; }
+
+    .btn-auth-submit {
+        width: 100%;
+        padding: 0.75rem;
+        background: linear-gradient(135deg, #D73585, #b02070);
+        color: #fff;
+        border: none;
+        border-radius: 10px;
+        font-size: 0.95rem;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        letter-spacing: 0.02em;
+        margin-top: 0.5rem;
+    }
+    .btn-auth-submit:hover:not(:disabled) {
+        background: linear-gradient(135deg, #c02d78, #9a1a62);
+        transform: translateY(-1px);
+        box-shadow: 0 6px 20px rgba(215,53,133,0.3);
+    }
+    .btn-auth-submit:disabled {
+        opacity: 0.55;
+        cursor: not-allowed;
+    }
+    .auth-footer-text {
+        text-align: center;
+        margin-top: 1.25rem;
+        font-size: 0.85rem;
+        color: #888;
+    }
+    .auth-footer-text a { color: #D73585; text-decoration: none; font-weight: 500; }
+    .auth-footer-text a:hover { text-decoration: underline; }
+    .auth-alert-error {
+        padding: 0.65rem 0.9rem;
+        border-radius: 8px;
+        font-size: 0.85rem;
+        margin-bottom: 1rem;
+        background: #fdecea;
+        border: 1px solid #f5c6cb;
+        color: #7a1a1a;
+    }
+    .auth-back-link {
+        position: fixed;
+        top: 1.25rem; left: 1.5rem;
+        font-size: 0.85rem;
+        color: #888;
+        text-decoration: none;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        transition: color 0.2s;
+        z-index: 10;
+    }
+    .auth-back-link:hover { color: #D73585; }
+
+    @media (max-width: 768px) {
+        .auth-panel-left { display: none; }
+        .auth-panel-right { padding: 2rem 1.5rem; }
+    }
+</style>
+
+<a href="{% url 'core:index' %}" class="auth-back-link">
+    <i class="fas fa-arrow-left"></i> Back to store
+</a>
+
+<div class="auth-page">
+    <!-- Left decorative panel -->
+    <div class="auth-panel-left">
+        <img src="{% static 'images/loginpagelogo.png' %}" alt="Nellie's Scent Logo">
+        <div class="auth-brand-name">Nellie's Scent</div>
+        <div class="auth-brand-tagline">Luxury Fragrances</div>
+        <div class="scent-dots">
+            <span></span><span></span><span></span>
+        </div>
+    </div>
+
+    <!-- Right form panel -->
+    <div class="auth-panel-right">
+        <div class="auth-form-box">
+            <h2>Create account</h2>
+            <p class="auth-subtitle">Join Nellie's Scent and explore luxury fragrances</p>
+
+            {% if form.non_field_errors %}
+                <div class="auth-alert-error">
+                    <i class="fas fa-exclamation-circle me-1"></i> {{ form.non_field_errors }}
+                </div>
+            {% endif %}
+
+            <!-- Social Buttons -->
+            <a href="{% url 'core:social_redirect' 'google' %}" class="btn-social">
+                <svg width="20" height="20" viewBox="0 0 24 24">
+                    <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+                    <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+                    <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
+                    <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+                </svg>
+                Continue with Google
+            </a>
+
+            <a href="{% url 'core:social_redirect' 'microsoft' %}" class="btn-social">
+                <svg width="20" height="20" viewBox="0 0 24 24">
+                    <rect x="1" y="1" width="10.5" height="10.5" fill="#F25022"/>
+                    <rect x="12.5" y="1" width="10.5" height="10.5" fill="#7FBA00"/>
+                    <rect x="1" y="12.5" width="10.5" height="10.5" fill="#00A4EF"/>
+                    <rect x="12.5" y="12.5" width="10.5" height="10.5" fill="#FFB900"/>
+                </svg>
+                Continue with Microsoft
+            </a>
+
+            <div class="divider-text">or sign up with email</div>
+
+            <form method="post" action="{% url 'core:signup' %}">
+                {% csrf_token %}
+                <div class="auth-field">
+                    <label>Email</label>
+                    {{ form.email }}
+                    {% if form.email.errors %}
+                        <div class="field-error">{{ form.email.errors }}</div>
+                    {% endif %}
+                </div>
+                <div class="auth-field">
+                    <label>Username</label>
+                    {{ form.username }}
+                    {% if form.username.errors %}
+                        <div class="field-error">{{ form.username.errors }}</div>
+                    {% endif %}
+                </div>
+                <div class="auth-field">
+                    <label>Password</label>
+                    {{ form.password1 }}
+                    {% if form.password1.errors %}
+                        <div class="field-error">{{ form.password1.errors }}</div>
+                    {% endif %}
+                </div>
+                <div class="auth-field">
+                    <label>Confirm Password</label>
+                    {{ form.password2 }}
+                    <div id="pwMatchMsg" class="pw-match-msg" style="display:none;"></div>
+                    {% if form.password2.errors %}
+                        <div class="field-error">{{ form.password2.errors }}</div>
+                    {% endif %}
+                </div>
+                <button type="submit" class="btn-auth-submit" id="signupBtn">Create Account</button>
+            </form>
+
+            <p class="auth-footer-text">
+                Already have an account? <a href="{% url 'account_login' %}">Sign in</a>
+            </p>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const pw1 = document.querySelector('input[name="password1"]');
+    const pw2 = document.querySelector('input[name="password2"]');
+    const msg = document.getElementById('pwMatchMsg');
+    const btn = document.getElementById('signupBtn');
+
+    function checkMatch() {
+        if (!pw2.value) { msg.style.display = 'none'; return; }
+        msg.style.display = 'block';
+        if (pw1.value === pw2.value) {
+            msg.textContent = '✓ Passwords match';
+            msg.className = 'pw-match-msg match';
+            btn.disabled = false;
+        } else {
+            msg.textContent = '✗ Passwords do not match';
+            msg.className = 'pw-match-msg mismatch';
+            btn.disabled = true;
+        }
+    }
+    if (pw1 && pw2) {
+        pw1.addEventListener('input', checkMatch);
+        pw2.addEventListener('input', checkMatch);
+    }
+});
+</script>
+{% endblock %}

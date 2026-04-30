@@ -1,0 +1,41 @@
+{% extends 'dashboard/base.html' %}
+{% block title %}Dashboard Overview{% endblock %}
+{% block subtitle %}<span class="page-label">Overview</span>{% endblock %}
+{% block content %}
+<div class="grid-grid">
+    <section class="metric-card">
+        <p>Unread Messages</p>
+        <h3>{{ unread_messages }}</h3>
+    </section>
+    <section class="metric-card">
+        <p>Total Revenue</p>
+        <h3>₦{{ total_revenue|floatformat:2 }}</h3>
+    </section>
+    <section class="metric-card">
+        <p>Monthly Revenue</p>
+        <h3>₦{{ month_revenue|floatformat:2 }}</h3>
+    </section>
+    <section class="metric-card">
+        <p>Pending Orders</p>
+        <h3>{{ pending_orders }}</h3>
+    </section>
+</div>
+
+<div class="section-head">
+    <h2>Quick Actions</h2>
+</div>
+<div class="action-grid">
+    <a href="{% url 'dashboard:product_create' %}" class="action-card">
+        <strong>Add Product</strong>
+        <p>Create a new product listing with image and mini icon.</p>
+    </a>
+    <a href="{% url 'dashboard:orders' %}" class="action-card">
+        <strong>Pending Orders</strong>
+        <p>Review and manage current pending orders.</p>
+    </a>
+    <a href="{% url 'dashboard:messages' %}" class="action-card">
+        <strong>Read Messages</strong>
+        <p>Check customer contact requests and mark them read.</p>
+    </a>
+</div>
+{% endblock %}

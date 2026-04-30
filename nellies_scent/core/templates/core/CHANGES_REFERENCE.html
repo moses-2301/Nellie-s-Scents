@@ -1,0 +1,303 @@
+<!-- ============================================================
+     CHANGES SUMMARY — paste each section into the right file
+     ============================================================ -->
+
+
+<!-- ── 1. base.html — replace the <script> block (lines 296–364) ── -->
+<script>
+// ─── Utilities ───────────────────────────────────────────────────────────────
+
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+
+// ─── Toast queue (8 seconds, stacked vertically) ─────────────────────────────
+
+const TOAST_DURATION = 8000;   // 8 seconds per task 7
+const TOAST_HEIGHT   = 56;     // px per toast row (approx)
+const TOAST_GAP      = 8;      // gap between toasts
+
+let _toastQueue = [];           // keeps track of live toasts
+
+function showToast(message, type = 'success') {
+    const toastDiv = document.createElement('div');
+    toastDiv.className = 'toast-notification show';
+
+    // Position stacked above previous toasts
+    const offset = _toastQueue.length * (TOAST_HEIGHT + TOAST_GAP);
+    toastDiv.style.bottom = `${24 + offset}px`;
+
+    const iconClass = type === 'success'
+        ? 'fas fa-check-circle'
+        : 'fas fa-exclamation-circle';
+
+    toastDiv.innerHTML = `<i class="${iconClass}"></i><span>${message}</span>`;
+    document.body.appendChild(toastDiv);
+    _toastQueue.push(toastDiv);
+
+    // Remove after TOAST_DURATION
+    setTimeout(() => {
+        toastDiv.classList.remove('show');
+        toastDiv.classList.add('hide');
+        setTimeout(() => {
+            toastDiv.remove();
+            _toastQueue = _toastQueue.filter(t => t !== toastDiv);
+            // Reflow remaining toasts
+            _toastQueue.forEach((t, i) => {
+                t.style.bottom = `${24 + i * (TOAST_HEIGHT + TOAST_GAP)}px`;
+            });
+        }, 300);
+    }, TOAST_DURATION);
+}
+
+// ─── Cart badge ───────────────────────────────────────────────────────────────
+
+function updateCartBadge(count) {
+    const btn = document.querySelector('[data-bs-target="#cartSidebar"]');
+    if (!btn) return;
+    let badge = btn.querySelector('.badge');
+    if (count > 0) {
+        if (!badge) {
+            badge = document.createElement('span');
+            badge.className = 'position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger';
+            btn.appendChild(badge);
+        }
+        badge.textContent = count;
+    } else {
+        if (badge) badge.remove();
+    }
+}
+
+// ─── Sidebar renderer ────────────────────────────────────────────────────────
+
+function refreshCartSidebar(sidebarItems, sidebarSubtotal, cartCount) {
+    const body = document.querySelector('#cartSidebar .offcanvas-body');
+    if (!body) return;
+
+    function fmt(val) {
+        return '₦' + parseFloat(val).toLocaleString('en-NG', { minimumFractionDigits: 2 });
+    }
+
+    if (!sidebarItems || sidebarItems.length === 0) {
+        body.innerHTML = `
+            <div class="text-center py-5" id="cartSidebarEmpty">
+                <i class="fas fa-shopping-cart fa-3x text-pink mb-3"></i>
+                <p class="mb-4">Your cart is empty. Add a few fragrances to get started.</p>
+                <a href="/shop/" class="btn btn-pink">Browse Products</a>
+            </div>`;
+        updateCartBadge(0);
+        return;
+    }
+
+    const itemsHTML = sidebarItems.map(item => `
+        <div class="cart-item d-flex gap-2 align-items-start mb-3 pb-3 border-bottom"
+             data-cart-key="${item.cart_key}">
+
+            ${item.image
+                ? `<img src="${item.image}" alt="${item.name}" class="cart-item-image rounded flex-shrink-0">`
+                : `<div class="cart-item-image rounded bg-pink-light flex-shrink-0"></div>`}
+
+            <div class="flex-grow-1 min-w-0">
+                <h6 class="mb-0 text-truncate small fw-bold">${item.name}</h6>
+                <p class="mb-1 small text-muted">Size: ${item.size}</p>
+                <div class="d-flex align-items-center justify-content-between gap-1 mt-1">
+                    <div class="d-flex align-items-center gap-1">
+                        <button class="btn btn-outline-pink btn-xs sidebar-qty-btn"
+                                data-action="decrease"
+                                data-cart-key="${item.cart_key}"
+                                data-quantity="${item.quantity}"
+                                style="width:24px;height:24px;padding:0;font-size:13px;line-height:1;">−</button>
+                        <span class="sidebar-qty-display px-1 small fw-semibold"
+                              style="min-width:20px;text-align:center;">${item.quantity}</span>
+                        <button class="btn btn-outline-pink btn-xs sidebar-qty-btn"
+                                data-action="increase"
+                                data-cart-key="${item.cart_key}"
+                                data-quantity="${item.quantity}"
+                                style="width:24px;height:24px;padding:0;font-size:13px;line-height:1;">+</button>
+                    </div>
+                    <span class="small text-pink fw-bold sidebar-item-total">${fmt(item.total)}</span>
+                </div>
+            </div>
+
+            <button class="btn btn-link text-danger p-0 flex-shrink-0 sidebar-remove-btn"
+                    data-cart-key="${item.cart_key}"
+                    title="Remove item"
+                    style="font-size:13px;margin-top:2px;">
+                <i class="fas fa-trash-alt"></i>
+            </button>
+        </div>`).join('');
+
+    body.innerHTML = `
+        <div class="cart-sidebar-items mb-3" id="cartSidebarItemsContainer">
+            ${itemsHTML}
+        </div>
+        <div class="mt-auto" id="cartSidebarFooter">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <span class="fw-semibold">Subtotal</span>
+                <span class="text-pink fw-bold" id="cartSidebarSubtotal">${fmt(sidebarSubtotal)}</span>
+            </div>
+            <a href="/shop/" class="btn btn-outline-pink w-100 mb-2">Continue Shopping</a>
+            <a href="/cart/" class="btn btn-pink w-100">View Full Cart</a>
+        </div>`;
+
+    updateCartBadge(cartCount);
+}
+
+// ─── Sidebar qty / remove (event delegation) ─────────────────────────────────
+
+document.addEventListener('click', function (e) {
+    const qtyBtn = e.target.closest('.sidebar-qty-btn');
+    if (qtyBtn) {
+        const cartKey = qtyBtn.dataset.cartKey;
+        const action  = qtyBtn.dataset.action;
+        const current = parseInt(qtyBtn.dataset.quantity, 10);
+        const newQty  = action === 'increase' ? current + 1 : current - 1;
+        if (newQty <= 0) sidebarRemoveItem(cartKey);
+        else             sidebarUpdateQty(cartKey, newQty);
+        return;
+    }
+    const removeBtn = e.target.closest('.sidebar-remove-btn');
+    if (removeBtn) {
+        sidebarRemoveItem(removeBtn.dataset.cartKey);
+    }
+});
+
+function sidebarUpdateQty(cartKey, newQty) {
+    fetch('{% url "core:update_cart" %}', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCookie('csrftoken') },
+        body: JSON.stringify({ cart_key: cartKey, quantity: newQty })
+    })
+    .then(r => r.json())
+    .then(data => {
+        if (data.status === 'success') fetchAndRefreshSidebar();
+        else showToast('Could not update quantity', 'error');
+    })
+    .catch(() => showToast('Network error', 'error'));
+}
+
+function sidebarRemoveItem(cartKey) {
+    fetch('{% url "core:remove_from_cart" %}', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCookie('csrftoken') },
+        body: JSON.stringify({ cart_key: cartKey })
+    })
+    .then(r => r.json())
+    .then(data => {
+        if (data.status === 'success') fetchAndRefreshSidebar();
+        else showToast('Could not remove item', 'error');
+    })
+    .catch(() => showToast('Network error', 'error'));
+}
+
+function fetchAndRefreshSidebar() {
+    fetch('{% url "core:get_cart_data" %}', {
+        headers: { 'X-CSRFToken': getCookie('csrftoken') }
+    })
+    .then(r => r.json())
+    .then(data => {
+        if (data.status === 'success') {
+            refreshCartSidebar(data.cart_items, data.cart_subtotal, data.cart_count);
+        }
+    })
+    .catch(() => showToast('Could not refresh cart', 'error'));
+}
+
+// ─── cartItemAdded event ──────────────────────────────────────────────────────
+
+document.addEventListener('cartItemAdded', function (e) {
+    if (!e.detail) return;
+    if (e.detail.show_login_message) {
+        const toast = new bootstrap.Toast(document.getElementById('loginToast'));
+        toast.show();
+    }
+    // Show designed toast instead of browser alert (task 1)
+    if (e.detail.message) {
+        showToast(e.detail.message, 'success');
+    }
+    if (e.detail.sidebar_items !== undefined) {
+        refreshCartSidebar(e.detail.sidebar_items, e.detail.sidebar_subtotal, e.detail.cart_count);
+    }
+});
+
+// ─── Logout ───────────────────────────────────────────────────────────────────
+
+document.addEventListener('DOMContentLoaded', function () {
+    const confirmLogoutBtn = document.getElementById('confirmLogoutBtn');
+    if (confirmLogoutBtn) {
+        confirmLogoutBtn.addEventListener('click', function () {
+            fetch('{% url "core:logout" %}', {
+                method: 'POST',
+                headers: { 'X-CSRFToken': getCookie('csrftoken'), 'Content-Type': 'application/json' }
+            })
+            .then(r => r.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    window.location.href = '{% url "core:index" %}';
+                }
+            })
+            .catch(error => console.error('Logout error:', error));
+        });
+    }
+});
+</script>
+
+
+<!-- ── 2. views.py — update social_redirect (replace lines 274–289) ── -->
+<!--
+def social_redirect(request, provider):
+    provider = provider.lower()
+    allowed_providers = ['google', 'microsoft']   # ← apple → microsoft
+
+    if provider not in allowed_providers:
+        messages.error(request, 'Unsupported social login provider.')
+        return redirect('core:signup')
+
+    return redirect(f'/accounts/{provider}/login/')
+-->
+
+
+<!-- ── 3. urls.py — add ONE missing line in the Cart section ── -->
+<!--
+    # Cart
+    path('cart/', views.view_cart, name='view_cart'),
+    path('cart/add/', views.add_to_cart, name='add_to_cart'),
+    path('cart/update/', views.update_cart, name='update_cart'),
+    path('cart/remove/', views.remove_from_cart, name='remove_from_cart'),
+    path('cart/data/', views.get_cart_data, name='get_cart_data'),   # ← ADD THIS
+-->
+
+
+<!-- ── 4. Django admin — add Microsoft as a social app ── -->
+<!--
+    pip install django-allauth
+    In settings.py INSTALLED_APPS, ensure:
+        'allauth',
+        'allauth.account',
+        'allauth.socialaccount',
+        'allauth.socialaccount.providers.microsoft',   # ← add this
+
+    Then in Django Admin → Social Applications → Add:
+        Provider:      Microsoft
+        Name:          Microsoft
+        Client ID:     <your Azure App client_id>
+        Secret key:    <your Azure App client_secret>
+        Sites:         move your site to "Chosen sites"
+
+    Azure App Registration steps:
+        1. Go to portal.azure.com → App registrations → New registration
+        2. Redirect URI: https://yourdomain.com/accounts/microsoft/login/callback/
+        3. Under "Certificates & secrets" create a client secret
+        4. Copy Application (client) ID and secret value into Django admin above
+-->

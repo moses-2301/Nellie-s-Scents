@@ -1,0 +1,23 @@
+{% extends 'dashboard/base.html' %}
+{% block title %}Core{% endblock %}
+{% block subtitle %}<span class="page-label">Core</span>{% endblock %}
+{% block content %}
+<div class="section-head">
+    <h2>Core system overview</h2>
+    <p>Quick access to the main product, order, and message counts.</p>
+</div>
+<div class="grid-grid">
+    <section class="metric-card">
+        <p>Total products</p>
+        <h3>{{ total_products }}</h3>
+    </section>
+    <section class="metric-card">
+        <p>Total orders</p>
+        <h3>{{ total_orders }}</h3>
+    </section>
+    <section class="metric-card">
+        <p>Total messages</p>
+        <h3>{{ total_messages }}</h3>
+    </section>
+</div>
+{% endblock %}

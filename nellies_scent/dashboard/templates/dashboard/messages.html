@@ -1,0 +1,41 @@
+{% extends 'dashboard/base.html' %}
+{% block title %}Messages{% endblock %}
+{% block subtitle %}<span class="page-label">Messages</span>{% endblock %}
+{% block content %}
+<div class="page-toolbar">
+    <div>
+        <a href="?unread=1" class="button secondary">Unread only</a>
+        <span class="status-chip">Unread: {{ unread_count }}</span>
+    </div>
+</div>
+<div class="table-card">
+    <table>
+        <thead>
+            <tr>
+                <th>From</th>
+                <th>Email</th>
+                <th>Message</th>
+                <th>Date</th>
+                <th>Status</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for message in messages %}
+            <tr>
+                <td>{{ message.name }}</td>
+                <td>{{ message.email }}</td>
+                <td>{{ message.message|truncatechars:60 }}</td>
+                <td>{{ message.created_at|date:'M d, Y' }}</td>
+                <td>{% if message.is_read %}Read{% else %}Unread{% endif %}</td>
+                <td class="table-actions">
+                    <a href="{% url 'dashboard:message_detail' message.id %}" class="button ghost">Open</a>
+                </td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="6">No messages found.</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

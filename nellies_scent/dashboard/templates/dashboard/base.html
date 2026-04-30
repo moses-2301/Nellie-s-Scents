@@ -1,0 +1,78 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Dashboard | Nellie's Scent{% endblock %}</title>
+    <link rel="stylesheet" href="{% static 'dashboard/css/dashboard.css' %}">
+</head>
+<body>
+    <div class="dashboard-shell">
+        <aside class="dashboard-sidebar">
+            <div class="sidebar-brand">
+                <span class="brand-badge">NS</span>
+                <div>
+                    <h1>Nellie's Scent</h1>
+                    <p>Admin Portal</p>
+                </div>
+            </div>
+
+            <nav class="sidebar-nav">
+                <a href="{% url 'dashboard:overview' %}" class="nav-link {% if request.resolver_match.url_name == 'overview' %}active{% endif %}">Overview</a>
+                <a href="{% url 'dashboard:products' %}" class="nav-link {% if request.resolver_match.url_name == 'products' or request.resolver_match.url_name == 'product_edit' or request.resolver_match.url_name == 'product_create' or request.resolver_match.url_name == 'product_delete' %}active{% endif %}">Products</a>
+                <a href="{% url 'dashboard:orders' %}" class="nav-link {% if request.resolver_match.url_name == 'orders' or request.resolver_match.url_name == 'order_detail' %}active{% endif %}">
+                    Orders
+                    {% if pending_orders %}<span class="nav-badge">{{ pending_orders }}</span>{% endif %}
+                </a>
+                <a href="{% url 'dashboard:messages' %}" class="nav-link {% if request.resolver_match.url_name == 'messages' or request.resolver_match.url_name == 'message_detail' %}active{% endif %}">Messages</a>
+                <a href="{% url 'dashboard:analytics' %}" class="nav-link {% if request.resolver_match.url_name == 'analytics' %}active{% endif %}">Analytics</a>
+                <a href="{% url 'dashboard:users' %}" class="nav-link {% if request.resolver_match.url_name == 'users' or request.resolver_match.url_name == 'user_detail' %}active{% endif %}">Users</a>
+            </nav>
+
+            <div class="sidebar-divider"></div>
+
+            <div class="sidebar-section">
+                <h3>System</h3>
+                <a href="{% url 'dashboard:accounts' %}" class="nav-link">Accounts</a>
+                <a href="{% url 'dashboard:auth_management' %}" class="nav-link">Authentication</a>
+                <a href="{% url 'dashboard:socialapp_list' %}" class="nav-link {% if request.resolver_match.url_name == 'socialapp_list' or request.resolver_match.url_name == 'socialapp_create' or request.resolver_match.url_name == 'socialapp_edit' or request.resolver_match.url_name == 'socialapp_delete' %}active{% endif %}">Social Apps</a>
+                <a href="{% url 'dashboard:social_accounts' %}" class="nav-link {% if request.resolver_match.url_name == 'social_accounts' %}active{% endif %}">Linked Accounts</a>
+                <a href="{% url 'dashboard:core_overview' %}" class="nav-link">Core</a>
+                <a href="{% url 'dashboard:sites_management' %}" class="nav-link">Sites</a>
+            </div>
+        </aside>
+
+        <main class="dashboard-content">
+            <header class="dashboard-topbar">
+                <div class="topbar-title">
+                    <a href="{% url 'dashboard:welcome' %}" class="topbar-home">Welcome Screen</a>
+                    {% block subtitle %}{% endblock %}
+                </div>
+                <div class="topbar-actions">
+                    <button id="theme-toggle" class="theme-switcher" aria-label="Switch theme">
+                        <span class="theme-icon">🌙</span>
+                    </button>
+                    <a href="/accounts/logout/" class="button secondary">Logout</a>
+                </div>
+            </header>
+
+            <div class="page-content">
+                    {% if messages %}
+                        <div class="flash-messages">
+                            {% for message in messages %}
+                                <div class="flash flash-{{ message.tags }}">{{ message }}</div>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                    {% block content %}{% endblock %}
+                </div>
+            </main>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.socket.io/4.7.1/socket.io.min.js"></script>
+    <script src="{% static 'dashboard/js/dashboard.js' %}"></script>
+    <script src="{% static 'dashboard/js/dashboard-analytics.js' %}"></script>
+    {% block extra_scripts %}{% endblock %}
+</body>
+</html>

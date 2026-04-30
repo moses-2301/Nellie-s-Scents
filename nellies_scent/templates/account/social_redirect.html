@@ -1,0 +1,35 @@
+{% extends 'core/base.html' %}
+{% block title %}Social Login | Nellie's Scent{% endblock %}
+{% block body_class %}page-no-navbar{% endblock %}
+{% block content %}
+<section class="d-flex align-items-center justify-content-center py-5" style="min-height: 100vh; background: linear-gradient(180deg, #ffe6ef 0%, #ffd4e8 100%);">
+    <div class="card rounded-4 shadow-sm border-0" style="max-width: 520px; width: 100%;">
+        <div class="card-body p-5 text-center">
+            <div class="mb-4">
+                <h2 class="fw-bold text-pink mb-3">Continue with {{ provider }}</h2>
+                <p class="text-muted mb-4">You will be redirected to {{ provider }} to sign in securely.</p>
+            </div>
+            <div class="mb-4">
+                <div class="alert alert-warning">
+                    If the redirect does not start automatically, click the button below.
+                </div>
+            </div>
+            <div class="d-grid gap-3 mb-4">
+                <a id="redirectLink" href="{{ redirect_url }}" class="btn btn-pink py-3">Continue to {{ provider }}</a>
+                <a href="{% url 'account_login' %}" class="btn btn-outline-secondary py-3">Back to login</a>
+            </div>
+            <p class="text-muted small">Still not redirected? Use the button above or refresh the page.</p>
+        </div>
+    </div>
+</section>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        setTimeout(function() {
+            var redirectLink = document.getElementById('redirectLink');
+            if (redirectLink) {
+                window.location.href = redirectLink.href;
+            }
+        }, 800);
+    });
+</script>
+{% endblock %}

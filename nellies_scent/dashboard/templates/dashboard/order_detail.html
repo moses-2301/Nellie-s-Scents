@@ -1,0 +1,55 @@
+{% extends 'dashboard/base.html' %}
+{% block title %}Order #{{ order.id }}{% endblock %}
+{% block subtitle %}<span class="page-label">Order details</span>{% endblock %}
+{% block content %}
+<div class="detail-grid">
+    <section class="detail-card">
+        <h3>Order #{{ order.id }}</h3>
+        <p><strong>Customer:</strong> {{ order.full_name }}</p>
+        <p><strong>Email:</strong> {{ order.email }}</p>
+        <p><strong>Phone:</strong> {{ order.phone }}</p>
+        <p><strong>State:</strong> {{ order.state }}</p>
+        <p><strong>Payment Method:</strong> {{ order.get_payment_method_display }}</p>
+        <p><strong>Order Status:</strong> {{ order.get_status_display }}</p>
+        <p><strong>Payment Status:</strong> 
+            {% if order.payment_status == 'success' %}
+                <span class="text-success">Paid</span>
+            {% elif order.payment_status == 'failed' %}
+                <span class="text-danger">Failed</span>
+            {% else %}
+                <span class="text-warning">Pending</span>
+            {% endif %}
+        </p>
+        {% if order.transaction_ref %}
+        <p><strong>Transaction Ref:</strong> {{ order.transaction_ref }}</p>
+        {% endif %}
+        {% if order.amount_paid %}
+        <p><strong>Amount Paid:</strong> ₦{{ order.amount_paid }}</p>
+        {% endif %}
+        <p><strong>Address:</strong> {{ order.address }}</p>
+        <p><strong>Created:</strong> {{ order.created_at|date:'M d, Y H:i' }}</p>
+    </section>
+
+    <section class="detail-card">
+        <h3>Items</h3>
+        <ul class="item-list">
+            {% for item in items %}
+            <li>{{ item.product.name }} × {{ item.quantity }} — ₦{{ item.get_total }}</li>
+            {% endfor %}
+        </ul>
+        <p class="summary"><strong>Total:</strong> ₦{{ order.get_total }}</p>
+    </section>
+</div>
+
+<div class="form-panel">
+    <form method="post" class="dashboard-form">
+        {% csrf_token %}
+        {{ form.status.label_tag }}
+        {{ form.status }}
+        <div class="form-actions">
+            <button type="submit" class="button primary">Update Status</button>
+            <a href="{% url 'dashboard:orders' %}" class="button secondary">Back to orders</a>
+        </div>
+    </form>
+</div>
+{% endblock %}

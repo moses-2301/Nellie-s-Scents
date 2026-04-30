@@ -1,0 +1,30 @@
+{% extends 'core/base.html' %}
+{% block title %}Request OTP | Nellie's Scent{% endblock %}
+{% block content %}
+<section class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-6">
+            <div class="card shadow-sm rounded-4 p-4">
+                <div class="text-center mb-4">
+                    <h2 class="fw-bold" style="font-family: 'Inter', sans-serif;">Email Verification</h2>
+                    <p class="text-muted">Enter your email to receive a 6-digit OTP code.</p>
+                </div>
+                <form method="post" novalidate>
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        <label class="form-label">Email</label>
+                        {{ form.email }}
+                        {% if form.email.errors %}
+                            <div class="text-danger small">{{ form.email.errors.0 }}</div>
+                        {% endif %}
+                    </div>
+                    <button type="submit" class="btn btn-pink w-100 py-2">Send OTP</button>
+                </form>
+                <div class="mt-3 text-center">
+                    <a href="{% url 'core:index' %}" class="text-decoration-none">Back to home</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}

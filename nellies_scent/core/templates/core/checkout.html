@@ -1,0 +1,261 @@
+{% extends 'core/base.html' %}
+{% block title %}Checkout | Nellie's Scent{% endblock %}
+
+{% block navbar %}{% endblock %}
+
+{% block content %}
+<style>
+    body { padding-top: 0 !important; }
+    .checkout-page-header {
+        background: linear-gradient(135deg, #fdf0f6 0%, #fce4f0 100%);
+        padding: 2.5rem 0 1.5rem;
+        border-bottom: 1px solid #f5c6de;
+    }
+    .checkout-back-link {
+        font-size: 0.85rem;
+        color: #888;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        margin-bottom: 1rem;
+        transition: color 0.2s;
+    }
+    .checkout-back-link:hover { color: #D73585; }
+</style>
+
+<main>
+    <div class="checkout-page-header">
+        <div class="container">
+            <a href="{% url 'core:view_cart' %}" class="checkout-back-link">
+                <i class="fas fa-arrow-left"></i> Back to cart
+            </a>
+            <h1 class="text-pink mb-1" style="font-family:'Cormorant Garamond',serif;font-size:2rem;">
+                <i class="fas fa-credit-card me-2"></i>Complete Your Order
+            </h1>
+            <p class="text-muted mb-0 small">Secure payment and delivery information</p>
+        </div>
+    </div>
+
+    <section class="container py-5">
+        <div class="row g-4">
+            <!-- Form -->
+            <div class="col-lg-8">
+                <form method="POST" action="{% url 'core:checkout' %}" class="checkout-form">
+                    {% csrf_token %}
+
+                    <div class="mb-5">
+                        <h4 class="text-pink mb-4">
+                            <i class="fas fa-map-marker-alt me-2"></i>Shipping Information
+                        </h4>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Full Name *</label>
+                                {{ form.full_name }}
+                                {% if form.full_name.errors %}
+                                    <div class="invalid-feedback d-block">{{ form.full_name.errors }}</div>
+                                {% endif %}
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Email Address *</label>
+                                {{ form.email }}
+                                {% if form.email.errors %}
+                                    <div class="invalid-feedback d-block">{{ form.email.errors }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Phone Number *</label>
+                                {{ form.phone }}
+                                {% if form.phone.errors %}
+                                    <div class="invalid-feedback d-block">{{ form.phone.errors }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Delivery Address *</label>
+                            {{ form.address }}
+                            {% if form.address.errors %}
+                                <div class="invalid-feedback d-block">{{ form.address.errors }}</div>
+                            {% endif %}
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">State *</label>
+                            {{ form.state }}
+                            {% if form.state.errors %}
+                                <div class="invalid-feedback d-block">{{ form.state.errors }}</div>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <div class="mb-5 pb-5 border-bottom">
+                        <h4 class="text-pink mb-4">
+                            <i class="fas fa-wallet me-2"></i>Payment Method
+                        </h4>
+                        <div class="mb-3">
+                            <label class="form-label">Choose Payment Method *</label>
+                            {% for radio in form.payment_method %}
+                                <div class="form-check mb-3 p-3 border rounded payment-option" data-payment="{{ radio.data.value }}">
+                                    {{ radio.tag }}
+                                    <label class="form-check-label ms-2" for="{{ radio.id_for_label }}">
+                                        <strong>{{ radio.choice_label }}</strong>
+                                        {% if radio.data.value == 'card' %}
+                                            <i class="fas fa-credit-card text-pink ms-2"></i>
+                                        {% else %}
+                                            <i class="fas fa-university text-pink ms-2"></i>
+                                        {% endif %}
+                                    </label>
+                                </div>
+                            {% endfor %}
+                            {% if form.payment_method.errors %}
+                                <div class="invalid-feedback d-block">{{ form.payment_method.errors }}</div>
+                            {% endif %}
+                        </div>
+
+                        <div id="card-details" class="payment-details p-3 bg-light rounded mb-3" style="display:none;">
+                            <h6 class="text-pink mb-3">Card Details</h6>
+                            <p class="text-muted small">
+                                <i class="fas fa-info-circle"></i>
+                                We accept all major credit/debit cards. Your payment is encrypted and secure.
+                            </p>
+                            <div class="mb-3">
+                                <input type="text" class="form-control" placeholder="Card Number" maxlength="19">
+                            </div>
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <input type="text" class="form-control" placeholder="MM/YY">
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <input type="text" class="form-control" placeholder="CVV">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div id="bank-details" class="payment-details p-3 bg-light rounded mb-3" style="display:none;">
+                            <h6 class="text-pink mb-3">Bank Transfer Details</h6>
+                            <p class="text-muted small mb-3">
+                                <i class="fas fa-info-circle"></i>
+                                Bank details will be sent to you via email after order placement.
+                            </p>
+                            <div class="alert alert-info mb-0">
+                                <strong>Our Bank Accounts:</strong><br>
+                                <small>
+                                    First Bank: 3123456789<br>
+                                    GTBank: 0123456789
+                                </small>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mb-4">
+                        <label for="notes" class="form-label">Order Notes (Optional)</label>
+                        <textarea class="form-control" id="notes" rows="3"
+                                  placeholder="Add any special instructions..."></textarea>
+                    </div>
+
+                    <div class="form-check mb-4">
+                        <input class="form-check-input" type="checkbox" id="terms" required>
+                        <label class="form-check-label" for="terms">
+                            I agree to the <a href="#" class="text-pink">Terms and Conditions</a>
+                            and <a href="#" class="text-pink">Privacy Policy</a>
+                        </label>
+                    </div>
+
+                    <button type="submit" class="btn btn-pink btn-lg w-100 mb-3">
+                        <i class="fas fa-check-circle me-2"></i>Place Order
+                    </button>
+                    <a href="{% url 'core:view_cart' %}" class="btn btn-outline-pink btn-lg w-100">
+                        <i class="fas fa-arrow-left me-2"></i>Back to Cart
+                    </a>
+                </form>
+
+                <div class="mt-4 p-3 bg-light rounded">
+                    <p class="text-muted small mb-2">
+                        <i class="fas fa-lock text-success"></i>
+                        <strong>256-bit SSL Encrypted</strong> – Your payment information is secure
+                    </p>
+                    <p class="text-muted small mb-0">
+                        <i class="fas fa-shield-alt text-success"></i>
+                        <strong>PCI DSS Compliant</strong> – We comply with highest security standards
+                    </p>
+                </div>
+            </div>
+
+            <!-- Order Summary -->
+            <div class="col-lg-4">
+                <div class="card border-pink shadow-sm sticky-top" style="top:30px;">
+                    <div class="card-body">
+                        <h5 class="card-title text-pink mb-4">
+                            <i class="fas fa-inbox me-2"></i>Order Summary
+                        </h5>
+                        <div class="mb-3" style="max-height:300px;overflow-y:auto;">
+                            {% for item in cart_items %}
+                            <div class="d-flex justify-content-between mb-3 pb-3 border-bottom">
+                                <div>
+                                    <small class="d-block fw-bold">{{ item.product.name }}</small>
+                                    <small class="text-muted">Size: {{ item.size }}</small><br>
+                                    <small class="text-muted">Qty: {{ item.quantity }}</small>
+                                </div>
+                                <small class="text-pink fw-bold">{{ item.get_total_ngn }}</small>
+                            </div>
+                            {% endfor %}
+                        </div>
+                        <hr class="border-pink">
+                        <div class="mb-4">
+                            <div class="d-flex justify-content-between mb-2">
+                                <span>Subtotal</span>
+                                <span>{{ subtotal_ngn }}</span>
+                            </div>
+                            <div class="d-flex justify-content-between mb-2">
+                                <span>Shipping</span>
+                                <span class="text-success fw-bold">Free</span>
+                            </div>
+                            <div class="d-flex justify-content-between border-top pt-3">
+                                <strong>Total Amount</strong>
+                                <strong class="text-pink fs-5">{{ total_ngn }}</strong>
+                            </div>
+                        </div>
+                        <div class="input-group mb-4">
+                            <input type="text" class="form-control form-control-sm" placeholder="Promo code">
+                            <button class="btn btn-outline-pink btn-sm">Apply</button>
+                        </div>
+                        <div class="p-3 bg-light rounded">
+                            <small class="text-muted d-block mb-2">
+                                <i class="fas fa-check-circle text-success"></i> Secure Checkout
+                            </small>
+                            <small class="text-muted d-block mb-2">
+                                <i class="fas fa-truck text-success"></i> Fast Delivery
+                            </small>
+                            <small class="text-muted d-block">
+                                <i class="fas fa-refresh text-success"></i> Money-Back Guarantee
+                            </small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+</main>
+
+<script>
+document.querySelectorAll('.payment-option input[type="radio"]').forEach(radio => {
+    radio.addEventListener('change', function () {
+        document.getElementById('card-details').style.display = 'none';
+        document.getElementById('bank-details').style.display = 'none';
+        if (this.value === 'card') document.getElementById('card-details').style.display = 'block';
+        else if (this.value === 'bank') document.getElementById('bank-details').style.display = 'block';
+    });
+});
+document.querySelectorAll('.payment-option').forEach(option => {
+    option.addEventListener('click', function () {
+        document.querySelectorAll('.payment-option').forEach(o => {
+            o.style.borderColor = '#E8E8E8';
+            o.style.backgroundColor = 'transparent';
+        });
+        this.style.borderColor = '#D73585';
+        this.style.backgroundColor = '#F0D9E8';
+    });
+});
+</script>
+{% endblock %}

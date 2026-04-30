@@ -1,0 +1,22 @@
+{% extends 'dashboard/base.html' %}
+{% block title %}Welcome | Dashboard{% endblock %}
+{% block content %}
+<div class="welcome-panel animate-slide-in">
+    <div class="welcome-card">
+        <div class="welcome-header">
+            <div>
+                <h2>Welcome, {{ admin_name }}</h2>
+            </div>
+        </div>
+
+        <div class="welcome-body">
+            <p class="welcome-description">Start with the cards below to manage products, orders, and customer messages without Django admin.</p>
+            <div class="welcome-actions">
+                <a href="{% url 'dashboard:products' %}" class="button primary">Manage Products</a>
+                <a href="{% url 'dashboard:orders' %}" class="button secondary">View Orders</a>
+                <a href="{% url 'dashboard:analytics' %}" class="button ghost">See Analytics</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

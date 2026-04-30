@@ -1,0 +1,746 @@
+{% extends 'core/base.html' %}
+{% block title %}{{ product.name }} | Nellie's Scent{% endblock %}
+{% block content %}
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,600&family=DM+Sans:wght@300;400;500&display=swap');
+
+.pd-page { font-family: 'DM Sans', sans-serif; }
+
+/* ── Breadcrumb ───────────────────────────────────── */
+.pd-breadcrumb {
+    background: #fafafa;
+    border-bottom: 1px solid #f5e6ef;
+    padding: 0.75rem 0;
+    font-size: 0.78rem;
+    color: #bbb;
+}
+.pd-breadcrumb a { color: #D73585; text-decoration: none; }
+.pd-breadcrumb a:hover { text-decoration: underline; }
+.pd-breadcrumb span { color: #ccc; margin: 0 0.4rem; }
+
+/* ── Product section ──────────────────────────────── */
+.pd-section { padding: 3rem 0 2rem; }
+
+/* Image panel */
+.pd-image-wrap {
+    position: sticky;
+    top: 90px;
+    border-radius: 20px;
+    overflow: hidden;
+    background: linear-gradient(135deg, #fdf0f6, #fce4f0);
+    aspect-ratio: 1 / 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.pd-image-wrap img {
+    width: 100%; height: 100%;
+    object-fit: cover;
+    transition: transform 0.5s ease;
+}
+.pd-image-wrap:hover img { transform: scale(1.03); }
+
+/* Right info col */
+.pd-eyebrow {
+    font-size: 0.72rem;
+    color: #D73585;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    font-weight: 500;
+    margin-bottom: 0.5rem;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+.pd-eyebrow::before {
+    content: '';
+    display: inline-block;
+    width: 20px; height: 1px;
+    background: #D73585;
+}
+.pd-name {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: clamp(2rem, 4vw, 3rem);
+    font-weight: 600;
+    color: #1a1a1a;
+    line-height: 1.1;
+    margin-bottom: 0.5rem;
+}
+.pd-review-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 1.25rem;
+    font-size: 0.82rem;
+    color: #bbb;
+}
+.pd-review-row .stars { color: #f5a623; }
+
+.pd-price {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 2.2rem;
+    font-weight: 600;
+    color: #D73585;
+    margin-bottom: 0.5rem;
+    line-height: 1;
+}
+.pd-stock-in {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    background: rgba(39,167,69,0.1);
+    border: 1px solid rgba(39,167,69,0.2);
+    color: #1a7a35;
+    font-size: 0.75rem;
+    font-weight: 500;
+    padding: 0.25rem 0.7rem;
+    border-radius: 50px;
+}
+.pd-stock-out {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    background: rgba(220,53,69,0.1);
+    border: 1px solid rgba(220,53,69,0.2);
+    color: #7a1a1a;
+    font-size: 0.75rem;
+    font-weight: 500;
+    padding: 0.25rem 0.7rem;
+    border-radius: 50px;
+}
+
+/* Divider */
+.pd-divider {
+    border: none;
+    border-top: 1px solid #f5e6ef;
+    margin: 1.25rem 0;
+}
+
+/* Description */
+.pd-desc-label {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #8b1a4a;
+    margin-bottom: 0.6rem;
+}
+.pd-desc {
+    font-size: 0.92rem;
+    color: #666;
+    line-height: 1.8;
+}
+
+/* Details grid */
+.pd-details-grid {
+    background: #fdf5f9;
+    border: 1px solid #f5e6ef;
+    border-radius: 14px;
+    padding: 1.25rem;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.85rem;
+}
+.pd-detail-item .d-label {
+    font-size: 0.7rem;
+    color: #bbb;
+    text-transform: uppercase;
+    letter-spacing: 0.07em;
+    margin-bottom: 0.15rem;
+}
+.pd-detail-item .d-value {
+    font-size: 0.88rem;
+    color: #333;
+    font-weight: 500;
+}
+.d-value .cat-pill {
+    display: inline-block;
+    background: rgba(215,53,133,0.1);
+    color: #D73585;
+    font-size: 0.72rem;
+    font-weight: 500;
+    padding: 0.2rem 0.6rem;
+    border-radius: 50px;
+    border: 1px solid rgba(215,53,133,0.2);
+}
+
+/* Qty controls */
+.pd-qty-row {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+}
+.pd-qty-label {
+    font-size: 0.78rem;
+    font-weight: 500;
+    color: #888;
+    min-width: 60px;
+}
+.pd-qty-btn {
+    width: 36px; height: 36px;
+    border-radius: 9px;
+    border: 1.5px solid #f0c8dc;
+    background: #fff;
+    color: #D73585;
+    font-size: 1.1rem;
+    line-height: 1;
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    transition: all 0.15s;
+}
+.pd-qty-btn:hover { background: #D73585; color: #fff; border-color: #D73585; }
+.pd-qty-input {
+    width: 52px;
+    text-align: center;
+    border: 1.5px solid #f0c8dc;
+    border-radius: 9px;
+    padding: 0.4rem;
+    font-size: 0.95rem;
+    color: #1a1a1a;
+    background: #fff;
+    outline: none;
+    font-family: 'DM Sans', sans-serif;
+}
+
+/* CTA buttons */
+.btn-add-cart {
+    width: 100%;
+    background: linear-gradient(135deg, #D73585, #b02070);
+    color: #fff;
+    border: none;
+    padding: 0.85rem;
+    border-radius: 12px;
+    font-size: 0.95rem;
+    font-weight: 500;
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center; gap: 8px;
+    transition: all 0.2s;
+    font-family: 'DM Sans', sans-serif;
+    margin-bottom: 0.75rem;
+}
+.btn-add-cart:hover {
+    background: linear-gradient(135deg, #c02d78, #9a1a62);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(215,53,133,0.3);
+}
+.btn-continue {
+    width: 100%;
+    border: 1.5px solid #f0c8dc;
+    color: #D73585;
+    background: transparent;
+    padding: 0.82rem;
+    border-radius: 12px;
+    font-size: 0.9rem;
+    font-weight: 500;
+    text-decoration: none;
+    display: flex; align-items: center; justify-content: center; gap: 8px;
+    transition: all 0.2s;
+    font-family: 'DM Sans', sans-serif;
+}
+.btn-continue:hover { background: #D73585; color: #fff; border-color: #D73585; }
+
+/* Out of stock banner */
+.out-of-stock-banner {
+    background: rgba(220,53,69,0.06);
+    border: 1px solid rgba(220,53,69,0.15);
+    border-radius: 12px;
+    padding: 1rem 1.25rem;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 0.88rem;
+    color: #7a1a1a;
+    margin-bottom: 0.75rem;
+}
+
+/* Share row */
+.share-row {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    padding-top: 1.25rem;
+    border-top: 1px solid #f5e6ef;
+    margin-top: 1.25rem;
+}
+.share-label { font-size: 0.78rem; color: #bbb; margin-right: 0.25rem; }
+.share-btn {
+    width: 34px; height: 34px;
+    border-radius: 9px;
+    border: 1.5px solid #f0c8dc;
+    background: #fff;
+    color: #D73585;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 0.82rem;
+    cursor: pointer;
+    text-decoration: none;
+    transition: all 0.2s;
+}
+.share-btn:hover { background: #D73585; color: #fff; border-color: #D73585; }
+
+/* ── Reviews section ──────────────────────────────── */
+.reviews-section {
+    padding: 4rem 0 5rem;
+    border-top: 1px solid #f5e6ef;
+    margin-top: 2rem;
+}
+.reviews-section .section-title {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.8rem;
+    font-weight: 600;
+    color: #8b1a4a;
+    margin-bottom: 0.25rem;
+}
+.review-count-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    background: rgba(215,53,133,0.08);
+    border: 1px solid rgba(215,53,133,0.15);
+    color: #D73585;
+    font-size: 0.78rem;
+    font-weight: 500;
+    padding: 0.25rem 0.75rem;
+    border-radius: 50px;
+}
+
+/* Review form */
+.review-form-wrap {
+    background: #fdf5f9;
+    border: 1px solid #f5e6ef;
+    border-radius: 14px;
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+}
+.review-form-wrap textarea {
+    border: 1.5px solid #eeecec;
+    border-radius: 10px;
+    font-size: 0.88rem;
+    font-family: 'DM Sans', sans-serif;
+    padding: 0.75rem 0.9rem;
+    width: 100%;
+    resize: vertical;
+    outline: none;
+    background: #fff;
+    transition: border-color 0.2s;
+}
+.review-form-wrap textarea:focus { border-color: #D73585; }
+.btn-review-submit {
+    background: linear-gradient(135deg, #D73585, #b02070);
+    color: #fff;
+    border: none;
+    padding: 0.65rem 1.75rem;
+    border-radius: 9px;
+    font-size: 0.88rem;
+    font-weight: 500;
+    cursor: pointer;
+    font-family: 'DM Sans', sans-serif;
+    transition: all 0.2s;
+    margin-top: 0.75rem;
+}
+.btn-review-submit:hover {
+    background: linear-gradient(135deg, #c02d78, #9a1a62);
+    transform: translateY(-1px);
+}
+
+/* Review card */
+.review-card {
+    background: #fff;
+    border: 1px solid #f5e6ef;
+    border-radius: 14px;
+    padding: 1.25rem;
+    margin-bottom: 1rem;
+    transition: box-shadow 0.2s;
+}
+.review-card:hover { box-shadow: 0 4px 16px rgba(215,53,133,0.07); }
+.review-card .reviewer {
+    font-weight: 600;
+    font-size: 0.9rem;
+    color: #1a1a1a;
+}
+.review-card .review-date {
+    font-size: 0.75rem;
+    color: #ccc;
+}
+.review-card .verified {
+    font-size: 0.72rem;
+    color: #27a745;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    margin: 0.3rem 0 0.6rem;
+}
+.review-card .review-text {
+    font-size: 0.88rem;
+    color: #555;
+    line-height: 1.7;
+    margin: 0;
+}
+
+/* Login prompt */
+.login-prompt {
+    background: #fdf5f9;
+    border: 1px solid #f5e6ef;
+    border-radius: 14px;
+    padding: 1.25rem;
+    font-size: 0.88rem;
+    color: #888;
+    margin-bottom: 1.5rem;
+}
+.login-prompt a { color: #D73585; font-weight: 500; text-decoration: none; }
+.login-prompt a:hover { text-decoration: underline; }
+
+/* Success / error alerts */
+.pd-alert {
+    border-radius: 10px;
+    padding: 0.75rem 1rem;
+    font-size: 0.85rem;
+    margin-bottom: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+.pd-alert-success { background: rgba(39,167,69,0.08); border: 1px solid rgba(39,167,69,0.2); color: #1a7a35; }
+.pd-alert-error   { background: rgba(220,53,69,0.08);  border: 1px solid rgba(220,53,69,0.15);  color: #7a1a1a; }
+
+/* ── Related products ─────────────────────────────── */
+.related-section .related-title {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: #8b1a4a;
+    margin-bottom: 1.25rem;
+}
+.related-card {
+    background: #fff;
+    border: 1px solid #f5e6ef;
+    border-radius: 14px;
+    overflow: hidden;
+    transition: all 0.2s;
+    margin-bottom: 1rem;
+}
+.related-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 24px rgba(215,53,133,0.08);
+    border-color: #f0c8dc;
+}
+.related-card img { width: 100%; aspect-ratio: 16/9; object-fit: cover; }
+.related-card .r-body { padding: 0.85rem; }
+.related-card .r-name {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1rem;
+    font-weight: 600;
+    color: #1a1a1a;
+    margin-bottom: 0.2rem;
+}
+.related-card .r-price {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #D73585;
+    margin-bottom: 0.6rem;
+}
+.btn-related-view {
+    width: 100%;
+    border: 1.5px solid #f0c8dc;
+    color: #D73585;
+    background: transparent;
+    padding: 0.45rem;
+    border-radius: 8px;
+    font-size: 0.78rem;
+    font-weight: 500;
+    text-decoration: none;
+    display: flex; align-items: center; justify-content: center; gap: 5px;
+    transition: all 0.2s;
+}
+.btn-related-view:hover { background: #D73585; color: #fff; border-color: #D73585; }
+</style>
+
+<main class="pd-page mt-5">
+
+    <!-- Breadcrumb -->
+    <div class="pd-breadcrumb">
+        <div class="container">
+            <a href="{% url 'core:index' %}">Home</a>
+            <span>/</span>
+            <a href="{% url 'core:shop' %}">Shop</a>
+            <span>/</span>
+            <span style="color:#555;">{{ product.name }}</span>
+        </div>
+    </div>
+
+    <!-- Product -->
+    <section class="pd-section">
+        <div class="container">
+            <div class="row g-5 align-items-start">
+
+                <!-- Image -->
+                <div class="col-lg-6">
+                    <div class="pd-image-wrap">
+                        {% if product.image %}
+                            <img src="{{ product.image.url }}" alt="{{ product.name }}">
+                        {% else %}
+                            <img src="https://via.placeholder.com/500x500?text={{ product.name|urlencode }}" alt="{{ product.name }}">
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- Info -->
+                <div class="col-lg-6">
+                    <p class="pd-eyebrow">{{ product.get_category_display_name }}</p>
+                    <h1 class="pd-name">{{ product.name }}</h1>
+
+                    <div class="pd-review-row">
+                        <span class="stars">
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star-half-alt"></i>
+                        </span>
+                        <span>{{ reviews.count }} review{{ reviews.count|pluralize }}</span>
+                    </div>
+
+                    <div class="pd-price">{{ product.get_price_ngn }}</div>
+                    <div class="mb-3">
+                        {% if product.stock > 0 %}
+                            <span class="pd-stock-in">
+                                <i class="fas fa-circle" style="font-size:.45rem;"></i> In Stock
+                            </span>
+                        {% else %}
+                            <span class="pd-stock-out">
+                                <i class="fas fa-times-circle" style="font-size:.75rem;"></i> Out of Stock
+                            </span>
+                        {% endif %}
+                    </div>
+
+                    <hr class="pd-divider">
+
+                    <!-- Description -->
+                    <p class="pd-desc-label">About This Fragrance</p>
+                    <p class="pd-desc">{{ product.description }}</p>
+
+                    <hr class="pd-divider">
+
+                    <!-- Product details grid -->
+                    <div class="pd-details-grid mb-4">
+                        <div class="pd-detail-item">
+                            <div class="d-label">Category</div>
+                            <div class="d-value"><span class="cat-pill">{{ product.get_category_display_name }}</span></div>
+                        </div>
+                        <div class="pd-detail-item">
+                            <div class="d-label">Type</div>
+                            <div class="d-value">{{ product.product_type|default:"—" }}</div>
+                        </div>
+                        <div class="pd-detail-item">
+                            <div class="d-label">Size</div>
+                            <div class="d-value">{{ product.size }}</div>
+                        </div>
+                        <div class="pd-detail-item">
+                            <div class="d-label">Stock</div>
+                            <div class="d-value">{{ product.stock }} units</div>
+                        </div>
+                        <div class="pd-detail-item">
+                            <div class="d-label">Added</div>
+                            <div class="d-value">{{ product.created_at|date:"M d, Y" }}</div>
+                        </div>
+                    </div>
+
+                    <!-- Add to cart -->
+                    {% if product.stock > 0 %}
+                    <div class="pd-qty-row">
+                        <span class="pd-qty-label">Quantity</span>
+                        <button class="pd-qty-btn" type="button" onclick="decreaseQty()">−</button>
+                        <input type="number" id="quantity" class="pd-qty-input"
+                               value="1" min="1" max="{{ product.stock }}" readonly>
+                        <button class="pd-qty-btn" type="button" onclick="increaseQty({{ product.stock }})">+</button>
+                    </div>
+                    <button class="btn-add-cart" onclick="addToCart({{ product.id }}, '{{ product.size }}')">
+                        <i class="fas fa-shopping-bag"></i> Add to Cart
+                    </button>
+                    <a href="{% url 'core:shop' %}" class="btn-continue">
+                        <i class="fas fa-arrow-left"></i> Continue Shopping
+                    </a>
+                    {% else %}
+                    <div class="out-of-stock-banner">
+                        <i class="fas fa-exclamation-triangle" style="color:#dc3545;font-size:1rem;flex-shrink:0;"></i>
+                        This product is currently out of stock. Check back soon!
+                    </div>
+                    <a href="{% url 'core:shop' %}" class="btn-continue">
+                        <i class="fas fa-arrow-left"></i> Browse Other Fragrances
+                    </a>
+                    {% endif %}
+
+                    <!-- Share -->
+                    <div class="share-row">
+                        <span class="share-label"><i class="fas fa-share-alt me-1"></i> Share:</span>
+                        <button type="button" onclick="shareProduct('facebook')" class="share-btn"><i class="fab fa-facebook-f"></i></button>
+                        <button type="button" onclick="shareProduct('whatsapp')"  class="share-btn"><i class="fab fa-whatsapp"></i></button>
+                        <button type="button" onclick="shareProduct('twitter')"   class="share-btn"><i class="fab fa-x-twitter"></i></button>
+                        <button type="button" onclick="shareProduct('instagram')" class="share-btn"><i class="fab fa-instagram"></i></button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Reviews + Related -->
+    <div class="reviews-section">
+        <div class="container">
+            <div class="row g-5">
+
+                <!-- Reviews -->
+                <div class="col-lg-8">
+                    <div class="d-flex align-items-center justify-content-between mb-4">
+                        <div>
+                            <h2 class="section-title mb-0">Customer Reviews</h2>
+                            <p class="text-muted small mb-0" style="font-size:.8rem;margin-top:.2rem;">Real feedback from customers who love our scents</p>
+                        </div>
+                        <span class="review-count-pill">
+                            <i class="fas fa-star" style="font-size:.65rem;"></i>
+                            {{ reviews.count }} review{{ reviews.count|pluralize }}
+                        </span>
+                    </div>
+
+                    {% if review_success %}
+                        <div class="pd-alert pd-alert-success">
+                            <i class="fas fa-check-circle"></i> Thank you! Your review has been submitted.
+                        </div>
+                    {% endif %}
+                    {% if review_error %}
+                        <div class="pd-alert pd-alert-error">
+                            <i class="fas fa-exclamation-circle"></i> {{ review_error }}
+                        </div>
+                    {% endif %}
+
+                    {% if user.is_authenticated %}
+                        <div class="review-form-wrap">
+                            <p style="font-family:'Cormorant Garamond',serif;font-size:1rem;font-weight:600;color:#8b1a4a;margin-bottom:.75rem;">
+                                <i class="fas fa-pen me-2" style="font-size:.85rem;"></i>Write a Review
+                            </p>
+                            <form method="post">
+                                {% csrf_token %}
+                                {{ review_form.message }}
+                                <button type="submit" class="btn-review-submit">
+                                    <i class="fas fa-paper-plane me-1"></i> Submit Review
+                                </button>
+                            </form>
+                        </div>
+                    {% else %}
+                        <div class="login-prompt">
+                            <i class="fas fa-info-circle me-2" style="color:#D73585;"></i>
+                            <strong>Want to share your experience?</strong>
+                            <a href="{% url 'account_login' %}">Log in</a> or
+                            <a href="{% url 'account_signup' %}">sign up</a> to leave a review.
+                        </div>
+                    {% endif %}
+
+                    {% if reviews %}
+                        {% for review in reviews %}
+                            <div class="review-card">
+                                <div class="d-flex justify-content-between align-items-start">
+                                    <div class="reviewer">{{ review.user.username }}</div>
+                                    <div class="review-date">{{ review.created_at|date:"M d, Y" }}</div>
+                                </div>
+                                <div class="verified">
+                                    <i class="fas fa-check-circle"></i> Verified Purchase
+                                </div>
+                                <p class="review-text">{{ review.message }}</p>
+                            </div>
+                        {% endfor %}
+                    {% else %}
+                        <div style="text-align:center;padding:3rem 1rem;background:#fdf5f9;border-radius:14px;border:1px dashed #f0c8dc;">
+                            <i class="fas fa-comment-slash fa-2x mb-3" style="color:#f0c8dc;"></i>
+                            <p class="text-muted small mb-0">No reviews yet. Be the first to share your experience!</p>
+                        </div>
+                    {% endif %}
+                </div>
+
+                <!-- Related -->
+                <div class="col-lg-4 related-section">
+                    <h3 class="related-title">You May Also Like</h3>
+                    {% if related_products %}
+                        {% for related in related_products %}
+                            <div class="related-card">
+                                {% if related.mini_icon %}
+                                    <img src="{{ related.mini_icon.url }}" alt="{{ related.name }}">
+                                {% elif related.image %}
+                                    <img src="{{ related.image.url }}" alt="{{ related.name }}">
+                                {% else %}
+                                    <div style="aspect-ratio:16/9;background:linear-gradient(135deg,#fce4f0,#f9d0e6);"></div>
+                                {% endif %}
+                                <div class="r-body">
+                                    <div class="r-name">{{ related.name }}</div>
+                                    <div class="r-price">{{ related.get_price_ngn }}</div>
+                                    <a href="{{ related.get_absolute_url }}" class="btn-related-view">
+                                        <i class="fas fa-eye"></i> View Product
+                                    </a>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    {% else %}
+                        <div style="background:#fdf5f9;border:1px dashed #f0c8dc;border-radius:14px;padding:2rem;text-align:center;">
+                            <p class="text-muted small mb-0">No related products yet.</p>
+                        </div>
+                    {% endif %}
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+</main>
+
+<script>
+function increaseQty(maxStock) {
+    const input = document.getElementById('quantity');
+    if (parseInt(input.value) < maxStock) input.value = parseInt(input.value) + 1;
+}
+function decreaseQty() {
+    const input = document.getElementById('quantity');
+    if (parseInt(input.value) > 1) input.value = parseInt(input.value) - 1;
+}
+
+function addToCart(productId, size) {
+    const qty = parseInt(document.getElementById('quantity').value);
+
+    fetch("{% url 'core:add_to_cart' %}", {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': getCookie('csrftoken')
+        },
+        body: JSON.stringify({ product_id: productId, quantity: qty, size: size })
+    })
+    .then(r => r.json().then(data => ({ status: r.status, body: data })))
+    .then(({ body }) => {
+        if (body.status === 'success') {
+            // Fire the global event — base.html handles toast + sidebar refresh
+            document.dispatchEvent(new CustomEvent('cartItemAdded', { detail: body }));
+            document.getElementById('quantity').value = 1;
+            return;
+        }
+        if (body.login_required) {
+            showToast(body.message || 'Please log in to add items.', 'error');
+            setTimeout(() => {
+                window.location.href = '{% url "account_login" %}?next=' + encodeURIComponent(window.location.href) + '&login_required=1';
+            }, 1200);
+            return;
+        }
+        showToast(body.message || 'Unable to add item to cart.', 'error');
+    })
+    .catch(() => showToast('Network error. Please try again.', 'error'));
+}
+
+function shareProduct(platform) {
+    const url  = encodeURIComponent(window.location.href);
+    const name = encodeURIComponent('{{ product.name }}');
+    const urls = {
+        facebook:  `https://www.facebook.com/sharer/sharer.php?u=${url}`,
+        whatsapp:  `https://wa.me/?text=Check%20out%20${name}%20on%20Nellie%27s%20Scent%3A%20${url}`,
+        twitter:   `https://twitter.com/intent/tweet?text=Check%20out%20${name}&url=${url}`,
+        instagram: `https://www.instagram.com/`
+    };
+    if (urls[platform]) window.open(urls[platform], '_blank', 'noopener');
+}
+</script>
+{% endblock %}
