@@ -1,76 +1,349 @@
 {% extends 'core/base.html' %}
-{% block title %}Verify Signup OTP | Nellie's Scent{% endblock %}
+{% load static %}
+{% block title %}Verify Your Email | Nellie's Scent{% endblock %}
+
+{% block navbar %}{% endblock %}
+
 {% block content %}
-<section class="container py-5">
-    <div class="row justify-content-center">
-        <div class="col-md-6">
-            <div class="card shadow-sm">
-                <div class="card-body p-5">
-                    <h3 class="card-title mb-3">Verify Your Email</h3>
-                    <p class="text-muted mb-4">A 6-digit OTP has been sent to your email address. Enter it below to complete account creation.</p>
-                    {% if error_message %}
-                        <div class="alert alert-danger">{{ error_message }}</div>
-                    {% endif %}
-                    <form method="post" action="{% url 'core:signup_verify' %}" id="otpForm">
-                        {% csrf_token %}
-                        <div class="mb-3">
-                            <label class="form-label">Enter OTP</label>
-                            {{ form.code }}
-                            {{ form.code.errors }}
-                        </div>
-                        <button type="submit" class="btn btn-pink w-100">Verify & Create Account</button>
-                    </form>
-                    
-                    <!-- Resend OTP Section -->
-                    <div class="mt-4 pt-3 border-top">
-                        <p class="text-muted mb-3">Didn't receive the OTP?</p>
-                        <button type="button" 
-                                id="resendOtpBtn" 
-                                class="btn btn-outline-pink w-100"
-                                data-resend-url="{% url 'core:resend_signup_otp' %}"
-                                data-csrf-token="{% csrf_token %}">
-                            Resend OTP
-                        </button>
-                        <div id="resendMessage" class="mt-2 text-center" style="display: none;"></div>
-                    </div>
-                    
-                    <p class="mt-4 text-center text-muted">Already verified? <a href="{% url 'account_login' %}">Login</a></p>
-                </div>
+<style>
+    @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400&family=DM+Sans:wght@300;400;500&display=swap');
+
+    .auth-page { min-height:100vh; display:flex; background:#fff; font-family:'DM Sans',sans-serif; }
+
+    .auth-panel-left {
+        width:42%;
+        background:linear-gradient(155deg,#f9d8e6 0%,#f0b8d0 50%,#e896ba 100%);
+        display:flex; flex-direction:column;
+        align-items:center; justify-content:center;
+        padding:3rem; position:relative; overflow:hidden;
+    }
+    .auth-panel-left::before {
+        content:''; position:absolute;
+        width:320px; height:320px; border-radius:50%;
+        background:rgba(255,255,255,0.15); top:-80px; right:-80px;
+    }
+    .auth-panel-left::after {
+        content:''; position:absolute;
+        width:200px; height:200px; border-radius:50%;
+        background:rgba(255,255,255,0.1); bottom:-40px; left:-40px;
+    }
+    .auth-brand-name {
+        font-family:'Cormorant Garamond',serif; font-size:3rem; font-weight:600;
+        color:#8b1a4a; letter-spacing:0.02em; position:relative; z-index:1;
+    }
+    .auth-brand-tagline {
+        font-size:0.95rem; color:#a0526a; margin-top:0.5rem; font-weight:300;
+        letter-spacing:0.08em; text-transform:uppercase; position:relative; z-index:1;
+    }
+    .auth-panel-left img {
+        width:140px; margin-bottom:1.5rem; position:relative; z-index:1;
+        filter:drop-shadow(0 4px 12px rgba(139,26,74,0.2));
+    }
+    .scent-dots { display:flex; gap:8px; margin-top:2rem; position:relative; z-index:1; }
+    .scent-dots span { width:8px; height:8px; border-radius:50%; background:rgba(139,26,74,0.3); }
+    .scent-dots span:nth-child(2) { background:rgba(139,26,74,0.6); }
+    .scent-dots span:nth-child(3) { background:rgba(139,26,74,0.45); }
+
+    .auth-panel-right {
+        flex:1; display:flex; align-items:center;
+        justify-content:center; padding:2.5rem;
+    }
+    .auth-form-box { width:100%; max-width:420px; }
+    .auth-form-box h2 {
+        font-family:'Cormorant Garamond',serif; font-size:2rem; font-weight:600;
+        color:#1a1a1a; margin-bottom:0.25rem;
+    }
+    .auth-subtitle { color:#888; font-size:0.9rem; margin-bottom:1.5rem; line-height:1.6; }
+
+    .auth-alert-error {
+        background:#fdecea; border:1px solid #f5c6cb; border-radius:10px;
+        padding:0.65rem 0.9rem; font-size:0.85rem; color:#7a1a1a;
+        margin-bottom:1.25rem; display:flex; align-items:center; gap:8px;
+    }
+    .auth-alert-success {
+        background:rgba(39,167,69,0.08); border:1px solid rgba(39,167,69,0.2);
+        border-radius:10px; padding:0.65rem 0.9rem; font-size:0.85rem; color:#1a7a35;
+        margin-bottom:1.25rem; display:flex; align-items:center; gap:8px;
+    }
+
+    /* Email chip */
+    .email-chip {
+        display:inline-flex; align-items:center; gap:6px;
+        background:rgba(215,53,133,0.08);
+        border:1px solid rgba(215,53,133,0.2);
+        color:#D73585; font-size:0.82rem; font-weight:500;
+        padding:0.3rem 0.85rem; border-radius:50px;
+        margin-bottom:1.5rem;
+    }
+
+    /* OTP boxes */
+    .otp-boxes {
+        display:flex; gap:10px; justify-content:center;
+        margin-bottom:1.25rem;
+    }
+    .otp-box {
+        width:48px; height:58px;
+        border:1.5px solid #e8e8e8; border-radius:12px;
+        font-family:'DM Sans',sans-serif; font-size:1.4rem; font-weight:600;
+        text-align:center; color:#1a1a1a; background:#fafafa;
+        outline:none; transition:border-color 0.2s, box-shadow 0.2s;
+        caret-color:#D73585;
+    }
+    .otp-box:focus {
+        border-color:#D73585; background:#fff;
+        box-shadow:0 0 0 3px rgba(215,53,133,0.08);
+    }
+    .otp-box.filled { border-color:#D73585; background:#fff; }
+
+    /* Hidden real input (Django form field) */
+    #otpHiddenInput { display:none; }
+
+    /* Expiry countdown */
+    .otp-expiry {
+        text-align:center; font-size:0.78rem; color:#bbb;
+        margin-bottom:1.25rem; display:flex;
+        align-items:center; justify-content:center; gap:6px;
+    }
+    .otp-expiry .countdown {
+        background:rgba(215,53,133,0.08);
+        color:#D73585; font-weight:600;
+        padding:0.15rem 0.5rem; border-radius:6px;
+        font-size:0.82rem; min-width:36px; text-align:center;
+    }
+
+    /* Submit button */
+    .btn-auth-submit {
+        width:100%; padding:0.78rem;
+        background:linear-gradient(135deg,#D73585,#b02070);
+        color:#fff; border:none; border-radius:10px;
+        font-size:0.95rem; font-weight:500; cursor:pointer;
+        transition:all 0.2s; font-family:'DM Sans',sans-serif;
+        display:flex; align-items:center; justify-content:center; gap:8px;
+    }
+    .btn-auth-submit:hover {
+        background:linear-gradient(135deg,#c02d78,#9a1a62);
+        transform:translateY(-1px);
+        box-shadow:0 6px 20px rgba(215,53,133,0.3);
+    }
+    .btn-auth-submit:disabled { opacity:0.45; cursor:not-allowed; transform:none; box-shadow:none; }
+
+    /* Resend section */
+    .resend-section {
+        text-align:center; margin-top:1.5rem;
+        padding-top:1.25rem; border-top:1px solid #f5e6ef;
+    }
+    .resend-section p { font-size:0.85rem; color:#aaa; margin-bottom:0.75rem; }
+    .btn-resend {
+        width:100%; padding:0.65rem;
+        border:1.5px solid #f0c8dc; color:#D73585;
+        background:transparent; border-radius:10px;
+        font-size:0.88rem; font-weight:500; cursor:pointer;
+        transition:all 0.2s; font-family:'DM Sans',sans-serif;
+    }
+    .btn-resend:hover:not(:disabled) { background:#D73585; color:#fff; border-color:#D73585; }
+    .btn-resend:disabled { opacity:0.45; cursor:not-allowed; }
+
+    .auth-footer-text { text-align:center; margin-top:1.25rem; font-size:0.85rem; color:#888; }
+    .auth-footer-text a { color:#D73585; text-decoration:none; font-weight:500; }
+    .auth-footer-text a:hover { text-decoration:underline; }
+
+    .auth-back-link {
+        position:fixed; top:1.25rem; left:1.5rem;
+        font-size:0.85rem; color:#888; text-decoration:none;
+        display:flex; align-items:center; gap:6px;
+        transition:color 0.2s; z-index:10;
+    }
+    .auth-back-link:hover { color:#D73585; }
+
+    #resendFeedback { margin-top:0.65rem; font-size:0.82rem; text-align:center; }
+
+    @media (max-width:768px) {
+        .auth-panel-left { display:none; }
+        .auth-panel-right { padding:2rem 1.5rem; }
+        .otp-box { width:42px; height:52px; font-size:1.2rem; }
+    }
+</style>
+
+<a href="{% url 'core:signup' %}" class="auth-back-link">
+    <i class="fas fa-arrow-left"></i> Back to signup
+</a>
+
+<div class="auth-page">
+    <div class="auth-panel-left">
+        <img src="{% static 'images/loginpagelogo.png' %}" alt="Nellie's Scent Logo">
+        <div class="auth-brand-name">Nellie's Scent</div>
+        <div class="auth-brand-tagline">Luxury Fragrances</div>
+        <div class="scent-dots"><span></span><span></span><span></span></div>
+    </div>
+
+    <div class="auth-panel-right">
+        <div class="auth-form-box">
+
+            <!-- Icon -->
+            <div style="width:52px;height:52px;border-radius:14px;background:linear-gradient(135deg,#fce4f0,#f9d0e6);display:flex;align-items:center;justify-content:center;margin-bottom:1.25rem;">
+                <i class="fas fa-envelope-open-text" style="color:#D73585;font-size:1.1rem;"></i>
             </div>
+
+            <h2>Verify Your Email</h2>
+            <p class="auth-subtitle">
+                A 6-digit code has been sent to your email address.
+                Enter it below to complete your account creation.
+            </p>
+
+            {% if error_message %}
+                <div class="auth-alert-error">
+                    <i class="fas fa-exclamation-circle"></i> {{ error_message }}
+                </div>
+            {% endif %}
+
+            <!-- Email chip (cosmetic) -->
+            <div class="email-chip">
+                <i class="fas fa-envelope" style="font-size:.75rem;"></i>
+                Check your inbox for the code
+            </div>
+
+            <!-- OTP form -->
+            <form method="post" action="{% url 'core:signup_verify' %}" id="otpForm">
+                {% csrf_token %}
+
+                <!-- Visual OTP boxes (drive the hidden real input) -->
+                <div class="otp-boxes" id="otpBoxes">
+                    <input class="otp-box" type="text" inputmode="numeric" maxlength="1" id="otp0">
+                    <input class="otp-box" type="text" inputmode="numeric" maxlength="1" id="otp1">
+                    <input class="otp-box" type="text" inputmode="numeric" maxlength="1" id="otp2">
+                    <input class="otp-box" type="text" inputmode="numeric" maxlength="1" id="otp3">
+                    <input class="otp-box" type="text" inputmode="numeric" maxlength="1" id="otp4">
+                    <input class="otp-box" type="text" inputmode="numeric" maxlength="1" id="otp5">
+                </div>
+
+                <!-- Hidden real form field — Django validates this -->
+                <div id="otpHiddenInput">{{ form.code }}</div>
+                {% if form.code.errors %}
+                    <p style="color:#D73585;font-size:0.78rem;text-align:center;margin-top:-0.75rem;margin-bottom:0.75rem;">
+                        {{ form.code.errors }}
+                    </p>
+                {% endif %}
+
+                <!-- Expiry timer -->
+                <div class="otp-expiry">
+                    <i class="fas fa-clock" style="font-size:.8rem;"></i>
+                    Code expires in <span class="countdown" id="expiryTimer">10:00</span>
+                </div>
+
+                <button type="submit" class="btn-auth-submit" id="submitBtn" disabled>
+                    <i class="fas fa-check-circle"></i> Verify &amp; Create Account
+                </button>
+            </form>
+
+            <!-- Resend -->
+            <div class="resend-section">
+                <p>Didn't receive the code?</p>
+                <button type="button" id="resendOtpBtn"
+                        class="btn-resend"
+                        data-resend-url="{% url 'core:resend_signup_otp' %}"
+                        disabled>
+                    Resend OTP
+                </button>
+                <div id="resendFeedback"></div>
+            </div>
+
+            <p class="auth-footer-text">
+                Already verified? <a href="{% url 'account_login' %}">Sign in</a>
+            </p>
         </div>
     </div>
-</section>
+</div>
 
 <script>
 document.addEventListener('DOMContentLoaded', function () {
-    const resendBtn = document.getElementById('resendOtpBtn');
-    const resendMessage = document.getElementById('resendMessage');
-    const COUNTDOWN_DURATION = 60; // 60 seconds
+    const boxes      = document.querySelectorAll('.otp-box');
+    const realInput  = document.querySelector('[name="code"]');
+    const submitBtn  = document.getElementById('submitBtn');
+    const resendBtn  = document.getElementById('resendOtpBtn');
+    const feedback   = document.getElementById('resendFeedback');
+    const timerEl    = document.getElementById('expiryTimer');
+    const COUNTDOWN  = 60;  // resend cooldown in seconds
+    const EXPIRY     = 600; // OTP validity in seconds (10 min)
 
-    // ─── Initialize countdown from session/storage ────────────────────────────────
-    function initializeCountdown() {
-        const lastResendTime = sessionStorage.getItem('otp_last_resend_time');
-        if (lastResendTime) {
-            const elapsed = Math.floor((Date.now() - parseInt(lastResendTime)) / 1000);
-            const remaining = COUNTDOWN_DURATION - elapsed;
-            
-            if (remaining > 0) {
-                startCountdown(remaining);
-            }
-        }
+    // ── OTP box logic ─────────────────────────────────────────────────────────
+    function getOtpValue() {
+        return Array.from(boxes).map(b => b.value).join('');
     }
 
-    // ─── Start countdown timer ────────────────────────────────────────────────────
-    function startCountdown(duration) {
+    function syncRealInput() {
+        const val = getOtpValue();
+        realInput.value = val;
+        // Enable submit only when all 6 digits filled
+        submitBtn.disabled = val.length < 6;
+    }
+
+    boxes.forEach((box, idx) => {
+        box.addEventListener('input', function (e) {
+            // Allow digits only
+            this.value = this.value.replace(/\D/g, '').slice(-1);
+            if (this.value) {
+                this.classList.add('filled');
+                if (idx < 5) boxes[idx + 1].focus();
+            } else {
+                this.classList.remove('filled');
+            }
+            syncRealInput();
+        });
+
+        box.addEventListener('keydown', function (e) {
+            if (e.key === 'Backspace' && !this.value && idx > 0) {
+                boxes[idx - 1].value = '';
+                boxes[idx - 1].classList.remove('filled');
+                boxes[idx - 1].focus();
+                syncRealInput();
+            }
+        });
+
+        // Support paste on any box
+        box.addEventListener('paste', function (e) {
+            e.preventDefault();
+            const pasted = (e.clipboardData || window.clipboardData)
+                            .getData('text').replace(/\D/g, '').slice(0, 6);
+            pasted.split('').forEach((ch, i) => {
+                if (boxes[i]) {
+                    boxes[i].value = ch;
+                    boxes[i].classList.add('filled');
+                }
+            });
+            const next = Math.min(pasted.length, 5);
+            boxes[next].focus();
+            syncRealInput();
+        });
+    });
+
+    // Focus first box on load
+    boxes[0].focus();
+
+    // ── Expiry countdown (10 min) ─────────────────────────────────────────────
+    let expiryRemaining = EXPIRY;
+    const expiryTimer = setInterval(() => {
+        expiryRemaining--;
+        const m = Math.floor(expiryRemaining / 60).toString().padStart(2, '0');
+        const s = (expiryRemaining % 60).toString().padStart(2, '0');
+        timerEl.textContent = `${m}:${s}`;
+        if (expiryRemaining <= 0) {
+            clearInterval(expiryTimer);
+            timerEl.textContent = 'Expired';
+            timerEl.style.background = 'rgba(220,53,69,0.1)';
+            timerEl.style.color = '#dc3545';
+        }
+    }, 1000);
+
+    // ── Resend cooldown ───────────────────────────────────────────────────────
+    function startResendCountdown(duration) {
         resendBtn.disabled = true;
         let remaining = duration;
-
-        const timer = setInterval(() => {
+        resendBtn.textContent = `Resend in ${remaining}s`;
+        const t = setInterval(() => {
             remaining--;
-            resendBtn.textContent = `Resend OTP in ${remaining}s`;
-
+            resendBtn.textContent = `Resend in ${remaining}s`;
             if (remaining <= 0) {
-                clearInterval(timer);
+                clearInterval(t);
                 resendBtn.disabled = false;
                 resendBtn.textContent = 'Resend OTP';
                 sessionStorage.removeItem('otp_last_resend_time');
@@ -78,70 +351,59 @@ document.addEventListener('DOMContentLoaded', function () {
         }, 1000);
     }
 
-    // ─── Handle resend OTP button click ───────────────────────────────────────────
-    resendBtn.addEventListener('click', function (e) {
-        e.preventDefault();
-
-        // Prevent double-click
-        if (resendBtn.disabled) {
-            return;
+    // Restore countdown if page was refreshed mid-cooldown
+    const lastResend = sessionStorage.getItem('otp_last_resend_time');
+    if (lastResend) {
+        const elapsed   = Math.floor((Date.now() - parseInt(lastResend)) / 1000);
+        const remaining = COUNTDOWN - elapsed;
+        if (remaining > 0) {
+            startResendCountdown(remaining);
+        } else {
+            resendBtn.disabled = false;
         }
+    } else {
+        // First load — allow resend immediately
+        resendBtn.disabled = false;
+    }
 
+    // ── Resend click ──────────────────────────────────────────────────────────
+    resendBtn.addEventListener('click', function () {
+        if (resendBtn.disabled) return;
         resendBtn.disabled = true;
-        resendBtn.textContent = 'Sending...';
+        resendBtn.textContent = 'Sending…';
 
         const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
-        const resendUrl = resendBtn.dataset.resendUrl;
 
-        fetch(resendUrl, {
+        fetch(resendBtn.dataset.resendUrl, {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRFToken': csrfToken,
-            },
-            body: JSON.stringify({}),
+            headers: { 'Content-Type': 'application/json', 'X-CSRFToken': csrfToken },
+            body: JSON.stringify({})
         })
-            .then(response => response.json())
-            .then(data => {
-                if (data.status === 'success') {
-                    // Store current timestamp for countdown
-                    sessionStorage.setItem('otp_last_resend_time', Date.now().toString());
-
-                    // Show success message
-                    resendMessage.innerHTML = `<div class="alert alert-success mb-0">${data.message}</div>`;
-                    resendMessage.style.display = 'block';
-
-                    // Start countdown
-                    startCountdown(COUNTDOWN_DURATION);
-                } else {
-                    // Show error message
-                    resendMessage.innerHTML = `<div class="alert alert-danger mb-0">${data.message}</div>`;
-                    resendMessage.style.display = 'block';
-                    resendBtn.disabled = false;
-                    resendBtn.textContent = 'Resend OTP';
-
-                    // Hide error message after 5 seconds
-                    setTimeout(() => {
-                        resendMessage.style.display = 'none';
-                    }, 5000);
-                }
-            })
-            .catch(error => {
-                console.error('Resend OTP error:', error);
-                resendMessage.innerHTML = '<div class="alert alert-danger mb-0">Network error. Please try again.</div>';
-                resendMessage.style.display = 'block';
+        .then(r => r.json())
+        .then(data => {
+            if (data.status === 'success') {
+                sessionStorage.setItem('otp_last_resend_time', Date.now().toString());
+                feedback.innerHTML = `<span style="color:#27a745;"><i class="fas fa-check-circle me-1"></i>${data.message}</span>`;
+                startResendCountdown(COUNTDOWN);
+                // Reset boxes and submit button
+                boxes.forEach(b => { b.value = ''; b.classList.remove('filled'); });
+                realInput.value = '';
+                submitBtn.disabled = true;
+                boxes[0].focus();
+            } else {
+                feedback.innerHTML = `<span style="color:#D73585;"><i class="fas fa-exclamation-circle me-1"></i>${data.message}</span>`;
                 resendBtn.disabled = false;
                 resendBtn.textContent = 'Resend OTP';
-
-                // Hide error message after 5 seconds
-                setTimeout(() => {
-                    resendMessage.style.display = 'none';
-                }, 5000);
-            });
+            }
+            setTimeout(() => { feedback.innerHTML = ''; }, 5000);
+        })
+        .catch(() => {
+            feedback.innerHTML = `<span style="color:#D73585;"><i class="fas fa-wifi me-1"></i>Network error. Please try again.</span>`;
+            resendBtn.disabled = false;
+            resendBtn.textContent = 'Resend OTP';
+            setTimeout(() => { feedback.innerHTML = ''; }, 5000);
+        });
     });
-
-    // Initialize countdown on page load
-    initializeCountdown();
 });
 </script>
 {% endblock %}
